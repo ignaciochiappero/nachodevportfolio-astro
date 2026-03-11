@@ -130,10 +130,16 @@ const positionStyle = [
 		const isMobile = window.innerWidth < 768;
 		const cleanups: Array<() => void> = [];
 		let isChatOpen = false;
+		let currentRotationSpeed = 1;
+		let targetRotationSpeed = 1;
 
 		const motionDefaults = reduceMotion
 			? { duration: 0 }
 			: { duration: 0.42, ease: "power2.out" };
+		const baseRotationSpeed = reduceMotion ? 0 : 1.75;
+		const hoverRotationSpeed = reduceMotion ? 0 : 0.3;
+		currentRotationSpeed = baseRotationSpeed;
+		targetRotationSpeed = baseRotationSpeed;
 
 		gsap.set(chatTooltip, { autoAlpha: 0, y: 8, pointerEvents: "none" });
 		gsap.set(chatPanel, {
@@ -265,8 +271,9 @@ const positionStyle = [
 
 		const handleRootPointerEnter = () => {
 			showTooltip();
+			targetRotationSpeed = hoverRotationSpeed;
 			gsap.to(chatTrigger, {
-				scale: 1.03,
+				scale: 0.8,
 				...motionDefaults,
 			});
 			gsap.to(fatWireframeMaterial, {
@@ -278,6 +285,7 @@ const positionStyle = [
 
 		const handleRootPointerLeave = () => {
 			hideTooltip();
+			targetRotationSpeed = baseRotationSpeed;
 			gsap.to(chatTrigger, {
 				scale: 1,
 				...motionDefaults,
@@ -328,9 +336,10 @@ const positionStyle = [
 
 		const renderFrame = () => {
 			const elapsed = clock.getElapsedTime();
+			currentRotationSpeed += (targetRotationSpeed - currentRotationSpeed) * 0.08;
 
-			sphereLines.rotation.x = 0.75 + elapsed * 0.12;
-			sphereLines.rotation.y = 0.6 + elapsed * 0.18;
+			sphereLines.rotation.x = 0.75 + elapsed * 0.12 * currentRotationSpeed;
+			sphereLines.rotation.y = 0.6 + elapsed * 0.18 * currentRotationSpeed;
 			sphereLines.rotation.z = Math.sin(elapsed * 0.45) * 0.08;
 			figureGroup.rotation.z = Math.sin(elapsed * 0.45) * 0.05;
 			figureGroup.position.y = Math.sin(elapsed * 0.9) * 0.16;

@@ -76,17 +76,6 @@ import FloatingSphereChat from "./FloatingSphereChat.astro";
 		const particleCloud = new THREE.Points(particleGeometry, particleMaterial);
 		particleScene.add(particleCloud);
 
-		let pointerX = 0;
-		let pointerY = 0;
-
-		const handlePointerMove = (event: PointerEvent) => {
-			pointerX = (event.clientX / window.innerWidth) * 2 - 1;
-			pointerY = (event.clientY / window.innerHeight) * 2 - 1;
-		};
-
-		window.addEventListener("pointermove", handlePointerMove, { passive: true });
-		cleanups.push(() => window.removeEventListener("pointermove", handlePointerMove));
-
 		const resizeParticles = () => {
 			particleCamera.aspect = window.innerWidth / window.innerHeight;
 			particleCamera.updateProjectionMatrix();
@@ -120,16 +109,16 @@ import FloatingSphereChat from "./FloatingSphereChat.astro";
 				const seedStride = index * 4;
 				const phase = elapsed * seeds[seedStride + 3] + seeds[seedStride + 2];
 				positionAttribute.array[stride] =
-					seeds[seedStride] + Math.cos(phase * 0.6) * 0.16 + pointerX * 0.18;
+					seeds[seedStride] + Math.cos(phase * 0.6) * 0.16;
 				positionAttribute.array[stride + 1] =
-					seeds[seedStride + 1] + Math.sin(phase) * 0.28 - pointerY * 0.12;
+					seeds[seedStride + 1] + Math.sin(phase) * 0.28;
 				positionAttribute.array[stride + 2] =
 					Math.sin(phase * 0.8) * 1.4 + (index % 11) * 0.03 - 0.4;
 			}
 
 			positionAttribute.needsUpdate = true;
-			particleCloud.rotation.y = elapsed * 0.025 + pointerX * 0.06;
-			particleCloud.rotation.x = -0.08 + pointerY * 0.04;
+			particleCloud.rotation.y = elapsed * 0.025;
+			particleCloud.rotation.x = -0.08;
 			particleRenderer.render(particleScene, particleCamera);
 
 			if (!reduceMotion) {
