@@ -14,10 +14,10 @@ interface Props {
 const {
 	position = { bottom: "1rem", right: "1rem" },
 	mode = "absolute",
-	tooltipText = "Open chat",
-	title = "Project chat",
-	eyebrow = "Signal / minimal",
-	mailHref = "mailto:hola@nachodev.com?subject=New%20project",
+	tooltipText = "Abrir chat IA",
+	title = "Chat con Nacho",
+	eyebrow = "IA / portfolio",
+	mailHref = "mailto:hola@nachodev.com?subject=Nuevo%20proyecto",
 	contactHref = "#contact",
 } = Astro.props;
 
@@ -52,29 +52,89 @@ const positionStyle = [
 					<p class="chat-panel__eyebrow">{eyebrow}</p>
 					<h2 class="chat-panel__title">{title}</h2>
 				</div>
-				<button type="button" class="chat-panel__close" data-chat-close aria-label="Close chat">
-					Close
+				<button type="button" class="chat-panel__close" data-chat-close aria-label="Cerrar chat">
+					Cerrar
 				</button>
 			</div>
 
-			<div class="chat-panel__body">
-				<div class="chat-message chat-message--system">
-					<span class="chat-message__label">System</span>
-					<p>Quiet, brutal and direct. The sphere is your entry point.</p>
+			<div class="chat-panel__meta">
+				<p class="chat-panel__status" data-chat-status>30 mensajes disponibles hoy</p>
+				<div class="chat-panel__meta-actions">
+					<button type="button" class="chat-panel__meta-button" data-chat-reset hidden>
+						Limpiar
+					</button>
+					<button type="button" class="chat-panel__meta-button" data-chat-identity hidden>
+						Cambiar nombre
+					</button>
 				</div>
-				<div class="chat-message">
-					<span class="chat-message__label">You can ask for</span>
-					<ul class="chat-panel__list">
-						<li>Portfolio redesign</li>
-						<li>Creative frontend build</li>
-						<li>Motion direction with Astro</li>
-					</ul>
+			</div>
+
+			<div class="chat-panel__body">
+				<div class="chat-onboarding" data-chat-onboarding>
+					<div class="chat-message chat-message--system">
+						<span class="chat-message__label">Contexto</span>
+						<p>
+							Este chat usa la misma base de IA del otro portfolio, pero adaptada a esta version en Astro.
+						</p>
+					</div>
+					<form class="chat-onboarding__form" data-chat-name-form>
+						<label class="chat-onboarding__label" for="floating-chat-name">Tu nombre</label>
+						<input
+							id="floating-chat-name"
+							class="chat-onboarding__input"
+							type="text"
+							name="name"
+							maxlength="30"
+							autocomplete="name"
+							placeholder="Como te llamas?"
+							data-chat-name-input
+						/>
+						<p class="chat-onboarding__error" data-chat-name-error hidden></p>
+						<button type="submit" class="chat-onboarding__submit">Iniciar chat</button>
+					</form>
+				</div>
+
+				<div class="chat-conversation" data-chat-conversation hidden>
+					<div class="chat-empty" data-chat-empty>
+						<p class="chat-empty__title">Listo para charlar.</p>
+						<p class="chat-empty__text">
+							Preguntame sobre proyectos, stack, experiencia, servicios o como trabajo.
+						</p>
+					</div>
+					<div class="chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+					<div class="chat-suggestions" data-chat-suggestions>
+						<button type="button" class="chat-suggestion" data-chat-suggestion="Que tipo de proyectos haces?">
+							Proyectos
+						</button>
+						<button type="button" class="chat-suggestion" data-chat-suggestion="En que stack te sentis mas fuerte?">
+							Stack
+						</button>
+						<button type="button" class="chat-suggestion" data-chat-suggestion="Como podria trabajar con vos?">
+							Trabajar juntos
+						</button>
+					</div>
+					<div class="chat-error" data-chat-error hidden></div>
 				</div>
 			</div>
 
 			<div class="chat-panel__footer">
-				<a class="chat-panel__action" href={mailHref}>Mail</a>
-				<a class="chat-panel__action" href={contactHref}>Contact</a>
+				<form class="chat-composer" data-chat-form hidden>
+					<textarea
+						class="chat-composer__input"
+						data-chat-input
+						rows="1"
+						maxlength="1200"
+						placeholder="Escribi tu mensaje..."
+					></textarea>
+					<button type="submit" class="chat-composer__submit" data-chat-submit>
+						Enviar
+					</button>
+				</form>
+
+				<div class="chat-panel__actions">
+					<a class="chat-panel__action" href={mailHref}>Mail</a>
+					<a class="chat-panel__action" href={contactHref}>Contacto</a>
+				</div>
 			</div>
 		</section>
 
@@ -82,7 +142,7 @@ const positionStyle = [
 			type="button"
 			class="chat-trigger"
 			data-chat-trigger
-			aria-label="Open chat window"
+			aria-label="Abrir chat"
 			aria-haspopup="dialog"
 			aria-expanded="false"
 		>
@@ -99,8 +159,114 @@ const positionStyle = [
 	import { Wireframe } from "three/examples/jsm/lines/Wireframe.js";
 	import { WireframeGeometry2 } from "three/examples/jsm/lines/WireframeGeometry2.js";
 	import { gsap } from "gsap";
+	import { CHAT_LIMITS } from "../lib/chat-config";
+	import { isValidName, sanitizeName } from "../lib/bad-words-filter";
+
+	type ChatMessage = { id: string; role: "user" | "assistant"; content: string };
+
+	const STORAGE_KEY = "nacho-astro-chat-history";
+	const USER_NAME_KEY = "nacho-astro-chat-user";
+	const MESSAGE_COUNT_KEY = "nacho-astro-chat-count";
+	const COUNT_RESET_KEY = "nacho-astro-chat-count-reset";
+	const FINGERPRINT_KEY = "nacho-astro-chat-fp";
 
 	const roots = document.querySelectorAll("[data-floating-sphere-chat]");
+
+	function createId() {
+		if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+			return crypto.randomUUID();
+		}
+
+		return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+	}
+
+	function generateFingerprint() {
+		const canvas = document.createElement("canvas");
+		const ctx = canvas.getContext("2d");
+		let canvasFingerprint = "";
+
+		if (ctx) {
+			ctx.textBaseline = "top";
+			ctx.font = "14px Arial";
+			ctx.fillText("fingerprint", 2, 2);
+			canvasFingerprint = canvas.toDataURL().slice(-50);
+		}
+
+		const components = [
+			navigator.userAgent,
+			navigator.language,
+			`${screen.width}x${screen.height}`,
+			screen.colorDepth,
+			new Date().getTimezoneOffset(),
+			navigator.hardwareConcurrency || 0,
+			canvasFingerprint,
+		];
+
+		const source = components.join("|");
+		let hash = 0;
+
+		for (let index = 0; index < source.length; index += 1) {
+			const code = source.charCodeAt(index);
+			hash = (hash << 5) - hash + code;
+			hash |= 0;
+		}
+
+		return Math.abs(hash).toString(36);
+	}
+
+	function getOrCreateFingerprint() {
+		let fingerprint = localStorage.getItem(FINGERPRINT_KEY);
+
+		if (!fingerprint) {
+			fingerprint = generateFingerprint();
+			localStorage.setItem(FINGERPRINT_KEY, fingerprint);
+		}
+
+		return fingerprint;
+	}
+
+	function createMessageMarkup(content: string) {
+		const fragment = document.createDocumentFragment();
+		const regex = /(\[[^\]]+\]\([^)]+\))|((?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|io|dev|org|net|co|ar)(?:\.ar)?[^\s<>"')]*[^\s<>"'.,)])/gi;
+		let lastIndex = 0;
+		let match;
+
+		while ((match = regex.exec(content)) !== null) {
+			if (match.index > lastIndex) {
+				fragment.append(document.createTextNode(content.slice(lastIndex, match.index)));
+			}
+
+			const fullMatch = match[0];
+			const anchor = document.createElement("a");
+			anchor.target = "_blank";
+			anchor.rel = "noreferrer noopener";
+			anchor.className = "chat-link";
+
+			if (fullMatch.startsWith("[")) {
+				const markdownMatch = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(fullMatch);
+				if (markdownMatch) {
+					anchor.textContent = markdownMatch[1];
+					anchor.href = markdownMatch[2].startsWith("http") ? markdownMatch[2] : `https://${markdownMatch[2]}`;
+				}
+			} else {
+				anchor.textContent = fullMatch;
+				anchor.href = fullMatch.startsWith("http") ? fullMatch : `https://${fullMatch}`;
+			}
+
+			fragment.append(anchor);
+			lastIndex = match.index + fullMatch.length;
+		}
+
+		if (lastIndex < content.length) {
+			fragment.append(document.createTextNode(content.slice(lastIndex)));
+		}
+
+		if (!fragment.childNodes.length) {
+			fragment.append(document.createTextNode(content));
+		}
+
+		return fragment;
+	}
 
 	for (const root of roots) {
 		if (!(root instanceof HTMLElement) || root.dataset.chatInitialized === "true") {
@@ -114,13 +280,44 @@ const positionStyle = [
 		const chatTooltip = root.querySelector("[data-chat-tooltip]");
 		const chatPanel = root.querySelector("[data-chat-panel]");
 		const chatClose = root.querySelector("[data-chat-close]");
+		const chatStatus = root.querySelector("[data-chat-status]");
+		const chatReset = root.querySelector("[data-chat-reset]");
+		const chatIdentity = root.querySelector("[data-chat-identity]");
+		const onboarding = root.querySelector("[data-chat-onboarding]");
+		const conversation = root.querySelector("[data-chat-conversation]");
+		const nameForm = root.querySelector("[data-chat-name-form]");
+		const nameInput = root.querySelector("[data-chat-name-input]");
+		const nameError = root.querySelector("[data-chat-name-error]");
+		const messagesEl = root.querySelector("[data-chat-messages]");
+		const emptyState = root.querySelector("[data-chat-empty]");
+		const suggestions = root.querySelector("[data-chat-suggestions]");
+		const errorBox = root.querySelector("[data-chat-error]");
+		const composerForm = root.querySelector("[data-chat-form]");
+		const composerInput = root.querySelector("[data-chat-input]");
+		const composerSubmit = root.querySelector("[data-chat-submit]");
+		const suggestionButtons = root.querySelectorAll("[data-chat-suggestion]");
 
 		if (
 			!(figureCanvas instanceof HTMLCanvasElement) ||
 			!(chatTrigger instanceof HTMLButtonElement) ||
 			!(chatTooltip instanceof HTMLDivElement) ||
 			!(chatPanel instanceof HTMLElement) ||
-			!(chatClose instanceof HTMLButtonElement)
+			!(chatClose instanceof HTMLButtonElement) ||
+			!(chatStatus instanceof HTMLElement) ||
+			!(chatReset instanceof HTMLButtonElement) ||
+			!(chatIdentity instanceof HTMLButtonElement) ||
+			!(onboarding instanceof HTMLElement) ||
+			!(conversation instanceof HTMLElement) ||
+			!(nameForm instanceof HTMLFormElement) ||
+			!(nameInput instanceof HTMLInputElement) ||
+			!(nameError instanceof HTMLElement) ||
+			!(messagesEl instanceof HTMLElement) ||
+			!(emptyState instanceof HTMLElement) ||
+			!(suggestions instanceof HTMLElement) ||
+			!(errorBox instanceof HTMLElement) ||
+			!(composerForm instanceof HTMLFormElement) ||
+			!(composerInput instanceof HTMLTextAreaElement) ||
+			!(composerSubmit instanceof HTMLButtonElement)
 		) {
 			continue;
 		}
@@ -132,6 +329,11 @@ const positionStyle = [
 		let isChatOpen = false;
 		let currentRotationSpeed = 1;
 		let targetRotationSpeed = 1;
+		let userName: string | null = null;
+		let messages: ChatMessage[] = [];
+		let messageCount = 0;
+		let isLoading = false;
+		let currentSection = "inicio";
 
 		const motionDefaults = reduceMotion
 			? { duration: 0 }
@@ -140,6 +342,250 @@ const positionStyle = [
 		const hoverRotationSpeed = reduceMotion ? 0 : 0.3;
 		currentRotationSpeed = baseRotationSpeed;
 		targetRotationSpeed = baseRotationSpeed;
+
+		const updateStatus = () => {
+			const remaining = Math.max(0, CHAT_LIMITS.maxMessagesPerSession - messageCount);
+			chatStatus.textContent = remaining > 0 ? `${remaining} mensajes disponibles hoy` : "Limite diario alcanzado";
+		};
+
+		const persistHistory = () => {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-CHAT_LIMITS.maxHistoryInStorage)));
+		};
+
+		const persistMessageCount = () => {
+			localStorage.setItem(MESSAGE_COUNT_KEY, String(messageCount));
+		};
+
+		const showError = (message: string) => {
+			errorBox.textContent = message;
+			errorBox.hidden = false;
+		};
+
+		const clearError = () => {
+			errorBox.textContent = "";
+			errorBox.hidden = true;
+			nameError.textContent = "";
+			nameError.hidden = true;
+		};
+
+		const applyLoadingState = () => {
+			const disabled = isLoading || messageCount >= CHAT_LIMITS.maxMessagesPerSession;
+			composerInput.disabled = disabled;
+			composerSubmit.disabled = disabled || !composerInput.value.trim();
+			composerSubmit.textContent = isLoading ? "Pensando" : "Enviar";
+		};
+
+		const scrollMessagesToBottom = () => {
+			messagesEl.scrollTo({
+				top: messagesEl.scrollHeight,
+				behavior: reduceMotion ? "auto" : "smooth",
+			});
+		};
+
+		const renderMessages = () => {
+			messagesEl.innerHTML = "";
+			emptyState.hidden = messages.length > 0;
+			suggestions.hidden = messages.length > 0;
+
+			for (const message of messages) {
+				const wrapper = document.createElement("div");
+				wrapper.className = `chat-bubble chat-bubble--${message.role}`;
+
+				const label = document.createElement("span");
+				label.className = "chat-bubble__label";
+				label.textContent = message.role === "user" ? userName || "Vos" : "Nacho";
+				wrapper.append(label);
+
+				const content = document.createElement("div");
+				content.className = "chat-bubble__content";
+
+				if (message.role === "assistant") {
+					content.append(createMessageMarkup(message.content));
+				} else {
+					content.textContent = message.content;
+				}
+
+				wrapper.append(content);
+				messagesEl.append(wrapper);
+			}
+
+			if (isLoading) {
+				const typing = document.createElement("div");
+				typing.className = "chat-typing";
+				typing.innerHTML = "<span></span><span></span><span></span>";
+				messagesEl.append(typing);
+			}
+
+			scrollMessagesToBottom();
+		};
+
+		const renderUiState = () => {
+			const hasIdentity = Boolean(userName);
+			onboarding.hidden = hasIdentity;
+			conversation.hidden = !hasIdentity;
+			composerForm.hidden = !hasIdentity;
+			chatReset.hidden = !hasIdentity;
+			chatIdentity.hidden = !hasIdentity;
+			updateStatus();
+			applyLoadingState();
+			renderMessages();
+		};
+
+		const loadPersistedState = () => {
+			userName = localStorage.getItem(USER_NAME_KEY);
+
+			const savedCount = localStorage.getItem(MESSAGE_COUNT_KEY);
+			const resetTime = localStorage.getItem(COUNT_RESET_KEY);
+			const now = Date.now();
+
+			if (resetTime && now > Number.parseInt(resetTime, 10)) {
+				messageCount = 0;
+				persistMessageCount();
+				localStorage.setItem(COUNT_RESET_KEY, String(now + 24 * 60 * 60 * 1000));
+			} else if (savedCount) {
+				messageCount = Number.parseInt(savedCount, 10) || 0;
+			} else {
+				localStorage.setItem(COUNT_RESET_KEY, String(now + 24 * 60 * 60 * 1000));
+			}
+
+			const savedHistory = localStorage.getItem(STORAGE_KEY);
+			if (savedHistory) {
+				try {
+					const parsed = JSON.parse(savedHistory);
+					if (Array.isArray(parsed)) {
+						messages = parsed.slice(-CHAT_LIMITS.maxHistoryInStorage);
+					}
+				} catch (error) {
+					console.error("Error loading chat history:", error);
+				}
+			}
+		};
+
+		const clearChat = () => {
+			messages = [];
+			localStorage.removeItem(STORAGE_KEY);
+			clearError();
+			renderUiState();
+		};
+
+		const resetIdentity = () => {
+			clearChat();
+			userName = null;
+			localStorage.removeItem(USER_NAME_KEY);
+			nameInput.value = "";
+			renderUiState();
+			window.setTimeout(() => nameInput.focus(), 40);
+		};
+
+		const setCurrentSectionTracking = () => {
+			const sections = Array.from(document.querySelectorAll("main [id], footer[id]"));
+
+			if (!sections.length || typeof IntersectionObserver === "undefined") {
+				return;
+			}
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					const visibleEntry = entries.filter((entry) => entry.isIntersecting).sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+
+					if (!visibleEntry) {
+						return;
+					}
+
+					const sectionId = visibleEntry.target.id === "top" ? "inicio" : visibleEntry.target.id;
+					currentSection = sectionId || "inicio";
+				},
+				{ threshold: [0.2, 0.5, 0.7] },
+			);
+
+			for (const section of sections) {
+				observer.observe(section);
+			}
+
+			cleanups.push(() => observer.disconnect());
+		};
+
+		const sendChatMessage = async (rawContent: string) => {
+			const content = rawContent.trim();
+
+			if (!content || isLoading || !userName || messageCount >= CHAT_LIMITS.maxMessagesPerSession || content.length > CHAT_LIMITS.maxInputLength) {
+				return;
+			}
+
+			clearError();
+			isLoading = true;
+
+			const userMessage: ChatMessage = { id: createId(), role: "user", content };
+			const assistantMessage: ChatMessage = { id: createId(), role: "assistant", content: "" };
+			const payloadMessages: ChatMessage[] = [...messages, userMessage].slice(
+				-CHAT_LIMITS.maxHistoryInStorage,
+			);
+			messages = [...payloadMessages, assistantMessage];
+			renderUiState();
+			persistHistory();
+
+			try {
+				const response = await fetch("/api/chat", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						messages: payloadMessages.map((message) => ({ role: message.role, content: message.content })),
+						userName,
+						currentSection,
+						fingerprint: getOrCreateFingerprint(),
+					}),
+				});
+
+				if (!response.ok) {
+					const data = await response.json().catch(() => ({ error: "No pude responder ahora mismo." }));
+					messages = payloadMessages;
+					if (data?.limitReached) {
+						messageCount = CHAT_LIMITS.maxMessagesPerSession;
+						persistMessageCount();
+					}
+					showError(data?.error || "No pude responder ahora mismo.");
+					renderUiState();
+					return;
+				}
+
+				if (!response.body) {
+					throw new Error("Missing response body");
+				}
+
+				const reader = response.body.getReader();
+				const decoder = new TextDecoder();
+				let assistantText = "";
+
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) {
+						break;
+					}
+
+					assistantText += decoder.decode(value, { stream: true });
+					assistantMessage.content = assistantText;
+					renderUiState();
+				}
+
+				assistantText += decoder.decode();
+				assistantMessage.content = assistantText.trim();
+				messages = [...payloadMessages, assistantMessage];
+				messageCount += 1;
+				persistHistory();
+				persistMessageCount();
+				renderUiState();
+			} catch (error) {
+				console.error("Chat client error:", error);
+				messages = payloadMessages;
+				showError("No pude responder ahora mismo. Proba de nuevo o escribime por contacto directo.");
+				renderUiState();
+			} finally {
+				isLoading = false;
+				applyLoadingState();
+				renderMessages();
+				window.setTimeout(() => composerInput.focus(), 40);
+			}
+		};
 
 		gsap.set(chatTooltip, { autoAlpha: 0, y: 8, pointerEvents: "none" });
 		gsap.set(chatPanel, {
@@ -210,27 +656,16 @@ const positionStyle = [
 			resizeFigure();
 		};
 
-		window.addEventListener("resize", handleResize);
-		cleanups.push(() => window.removeEventListener("resize", handleResize));
-
 		const showTooltip = () => {
 			if (isChatOpen) {
 				return;
 			}
 
-			gsap.to(chatTooltip, {
-				autoAlpha: 1,
-				y: 0,
-				...motionDefaults,
-			});
+			gsap.to(chatTooltip, { autoAlpha: 1, y: 0, ...motionDefaults });
 		};
 
 		const hideTooltip = () => {
-			gsap.to(chatTooltip, {
-				autoAlpha: 0,
-				y: 8,
-				...motionDefaults,
-			});
+			gsap.to(chatTooltip, { autoAlpha: 0, y: 8, ...motionDefaults });
 		};
 
 		const openChat = () => {
@@ -245,6 +680,14 @@ const positionStyle = [
 				pointerEvents: "auto",
 				...motionDefaults,
 			});
+
+			window.setTimeout(() => {
+				if (userName) {
+					composerInput.focus();
+				} else {
+					nameInput.focus();
+				}
+			}, 60);
 		};
 
 		const closeChatPanel = () => {
@@ -272,10 +715,7 @@ const positionStyle = [
 		const handleRootPointerEnter = () => {
 			showTooltip();
 			targetRotationSpeed = hoverRotationSpeed;
-			gsap.to(chatTrigger, {
-				scale: 0.8,
-				...motionDefaults,
-			});
+			gsap.to(chatTrigger, { scale: 0.8, ...motionDefaults });
 			gsap.to(fatWireframeMaterial, {
 				linewidth: isMobile ? 3.2 : 4.2,
 				opacity: 1,
@@ -286,10 +726,7 @@ const positionStyle = [
 		const handleRootPointerLeave = () => {
 			hideTooltip();
 			targetRotationSpeed = baseRotationSpeed;
-			gsap.to(chatTrigger, {
-				scale: 1,
-				...motionDefaults,
-			});
+			gsap.to(chatTrigger, { scale: 1, ...motionDefaults });
 			gsap.to(fatWireframeMaterial, {
 				linewidth: isMobile ? 2.8 : 3.6,
 				opacity: 1,
@@ -313,6 +750,63 @@ const positionStyle = [
 			}
 		};
 
+		nameForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+			clearError();
+
+			const sanitized = sanitizeName(nameInput.value);
+			const validation = isValidName(sanitized);
+
+			if (!validation.valid) {
+				nameError.textContent = validation.reason || "Nombre invalido";
+				nameError.hidden = false;
+				return;
+			}
+
+			userName = sanitized;
+			localStorage.setItem(USER_NAME_KEY, sanitized);
+			nameInput.value = sanitized;
+			renderUiState();
+			composerInput.focus();
+		});
+
+		chatReset.addEventListener("click", clearChat);
+		chatIdentity.addEventListener("click", resetIdentity);
+
+		composerInput.addEventListener("input", () => {
+			composerInput.style.height = "auto";
+			composerInput.style.height = `${Math.min(composerInput.scrollHeight, 112)}px`;
+			applyLoadingState();
+		});
+
+		composerInput.addEventListener("keydown", (event) => {
+			if (event.key === "Enter" && !event.shiftKey) {
+				event.preventDefault();
+				composerForm.requestSubmit();
+			}
+		});
+
+		composerForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			const content = composerInput.value;
+			composerInput.value = "";
+			composerInput.style.height = "auto";
+			applyLoadingState();
+			await sendChatMessage(content);
+		});
+
+		for (const button of suggestionButtons) {
+			button.addEventListener("click", async () => {
+				const prompt = button.getAttribute("data-chat-suggestion") || "";
+				if (!prompt) {
+					return;
+				}
+
+				composerInput.value = "";
+				await sendChatMessage(prompt);
+			});
+		}
+
 		root.addEventListener("pointerenter", handleRootPointerEnter);
 		root.addEventListener("pointerleave", handleRootPointerLeave);
 		chatTrigger.addEventListener("focus", showTooltip);
@@ -321,6 +815,7 @@ const positionStyle = [
 		chatClose.addEventListener("click", closeChatPanel);
 		document.addEventListener("pointerdown", handleDocumentPointerDown);
 		window.addEventListener("keydown", handleEscape);
+		window.addEventListener("resize", handleResize);
 
 		cleanups.push(() => root.removeEventListener("pointerenter", handleRootPointerEnter));
 		cleanups.push(() => root.removeEventListener("pointerleave", handleRootPointerLeave));
@@ -330,6 +825,11 @@ const positionStyle = [
 		cleanups.push(() => chatClose.removeEventListener("click", closeChatPanel));
 		cleanups.push(() => document.removeEventListener("pointerdown", handleDocumentPointerDown));
 		cleanups.push(() => window.removeEventListener("keydown", handleEscape));
+		cleanups.push(() => window.removeEventListener("resize", handleResize));
+
+		loadPersistedState();
+		setCurrentSectionTracking();
+		renderUiState();
 
 		const clock = new THREE.Clock();
 		let frameId = 0;
