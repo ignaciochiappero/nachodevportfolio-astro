@@ -1,0 +1,357 @@
+---
+type Position = Partial<Record<"top" | "right" | "bottom" | "left", string>>;
+
+interface Props {
+	position?: Position;
+	mode?: "absolute" | "fixed";
+	tooltipText?: string;
+	title?: string;
+	eyebrow?: string;
+	mailHref?: string;
+	contactHref?: string;
+}
+
+const {
+	position = { bottom: "1rem", right: "1rem" },
+	mode = "absolute",
+	tooltipText = "Open chat",
+	title = "Project chat",
+	eyebrow = "Signal / minimal",
+	mailHref = "mailto:hola@nachodev.com?subject=New%20project",
+	contactHref = "#contact",
+} = Astro.props;
+
+const positionStyle = [
+	`position: ${mode}`,
+	position.top ? `top: ${position.top}` : undefined,
+	position.right ? `right: ${position.right}` : undefined,
+	position.bottom ? `bottom: ${position.bottom}` : undefined,
+	position.left ? `left: ${position.left}` : undefined,
+]
+	.filter(Boolean)
+	.join("; ");
+---
+
+<div class="chat-dock" data-floating-sphere-chat style={positionStyle}>
+	<div class="chat-dock__stack">
+		<div class="chat-tooltip" data-chat-tooltip role="status" aria-live="polite">
+			<span class="chat-tooltip__line"></span>
+			<span>{tooltipText}</span>
+		</div>
+
+		<section
+			class="chat-panel"
+			data-chat-panel
+			role="dialog"
+			aria-modal="false"
+			aria-hidden="true"
+		>
+			<div class="chat-panel__topbar"></div>
+			<div class="chat-panel__header">
+				<div>
+					<p class="chat-panel__eyebrow">{eyebrow}</p>
+					<h2 class="chat-panel__title">{title}</h2>
+				</div>
+				<button type="button" class="chat-panel__close" data-chat-close aria-label="Close chat">
+					Close
+				</button>
+			</div>
+
+			<div class="chat-panel__body">
+				<div class="chat-message chat-message--system">
+					<span class="chat-message__label">System</span>
+					<p>Quiet, brutal and direct. The sphere is your entry point.</p>
+				</div>
+				<div class="chat-message">
+					<span class="chat-message__label">You can ask for</span>
+					<ul class="chat-panel__list">
+						<li>Portfolio redesign</li>
+						<li>Creative frontend build</li>
+						<li>Motion direction with Astro</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="chat-panel__footer">
+				<a class="chat-panel__action" href={mailHref}>Mail</a>
+				<a class="chat-panel__action" href={contactHref}>Contact</a>
+			</div>
+		</section>
+
+		<button
+			type="button"
+			class="chat-trigger"
+			data-chat-trigger
+			aria-label="Open chat window"
+			aria-haspopup="dialog"
+			aria-expanded="false"
+		>
+			<span class="chat-trigger__inner">
+				<canvas class="chat-trigger__canvas" data-chat-figure></canvas>
+			</span>
+		</button>
+	</div>
+</div>
+
+<script>
+	import * as THREE from "three";
+	import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
+	import { Wireframe } from "three/examples/jsm/lines/Wireframe.js";
+	import { WireframeGeometry2 } from "three/examples/jsm/lines/WireframeGeometry2.js";
+	import { gsap } from "gsap";
+
+	const roots = document.querySelectorAll("[data-floating-sphere-chat]");
+
+	for (const root of roots) {
+		if (!(root instanceof HTMLElement) || root.dataset.chatInitialized === "true") {
+			continue;
+		}
+
+		root.dataset.chatInitialized = "true";
+
+		const figureCanvas = root.querySelector("[data-chat-figure]");
+		const chatTrigger = root.querySelector("[data-chat-trigger]");
+		const chatTooltip = root.querySelector("[data-chat-tooltip]");
+		const chatPanel = root.querySelector("[data-chat-panel]");
+		const chatClose = root.querySelector("[data-chat-close]");
+
+		if (
+			!(figureCanvas instanceof HTMLCanvasElement) ||
+			!(chatTrigger instanceof HTMLButtonElement) ||
+			!(chatTooltip instanceof HTMLDivElement) ||
+			!(chatPanel instanceof HTMLElement) ||
+			!(chatClose instanceof HTMLButtonElement)
+		) {
+			continue;
+		}
+
+		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const reduceMotion = mediaQuery.matches;
+		const isMobile = window.innerWidth < 768;
+		const cleanups: Array<() => void> = [];
+		let isChatOpen = false;
+
+		const motionDefaults = reduceMotion
+			? { duration: 0 }
+			: { duration: 0.42, ease: "power2.out" };
+
+		gsap.set(chatTooltip, { autoAlpha: 0, y: 8, pointerEvents: "none" });
+		gsap.set(chatPanel, {
+			autoAlpha: 0,
+			y: 18,
+			scale: 0.96,
+			transformOrigin: "bottom right",
+			pointerEvents: "none",
+		});
+		gsap.from(chatTrigger, {
+			autoAlpha: 0,
+			y: 20,
+			delay: reduceMotion ? 0 : 0.2,
+			...motionDefaults,
+		});
+
+		const figureRenderer = new THREE.WebGLRenderer({
+			canvas: figureCanvas,
+			alpha: true,
+			antialias: true,
+			powerPreference: "high-performance",
+		});
+		figureRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+		figureRenderer.outputColorSpace = THREE.SRGBColorSpace;
+
+		const figureScene = new THREE.Scene();
+		const figureCamera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+		figureCamera.position.set(0, 0, 7.4);
+
+		const figureGroup = new THREE.Group();
+		figureScene.add(figureGroup);
+
+		const sphereGeometry = new THREE.IcosahedronGeometry(1.9, 0);
+		const fatWireframeGeometry = new WireframeGeometry2(sphereGeometry);
+		const fatWireframeMaterial = new LineMaterial({
+			color: 0x111111,
+			linewidth: isMobile ? 2.8 : 3.6,
+			dashed: false,
+			transparent: true,
+			opacity: 0.94,
+			worldUnits: false,
+		});
+		const sphereLines = new Wireframe(fatWireframeGeometry, fatWireframeMaterial);
+		sphereLines.computeLineDistances();
+		figureGroup.scale.setScalar(0.94);
+		figureGroup.add(sphereLines);
+
+		const resizeFigure = () => {
+			const bounds = figureCanvas.getBoundingClientRect();
+			const width = Math.max(120, Math.round(bounds.width));
+			const height = Math.max(120, Math.round(bounds.height));
+			figureCamera.aspect = width / height;
+			figureCamera.updateProjectionMatrix();
+			fatWireframeMaterial.resolution.set(width, height);
+			figureRenderer.setSize(width, height, false);
+		};
+
+		resizeFigure();
+
+		const resizeObserver = new ResizeObserver(() => {
+			resizeFigure();
+		});
+		resizeObserver.observe(root);
+		resizeObserver.observe(figureCanvas);
+		cleanups.push(() => resizeObserver.disconnect());
+
+		const handleResize = () => {
+			resizeFigure();
+		};
+
+		window.addEventListener("resize", handleResize);
+		cleanups.push(() => window.removeEventListener("resize", handleResize));
+
+		const showTooltip = () => {
+			if (isChatOpen) {
+				return;
+			}
+
+			gsap.to(chatTooltip, {
+				autoAlpha: 1,
+				y: 0,
+				...motionDefaults,
+			});
+		};
+
+		const hideTooltip = () => {
+			gsap.to(chatTooltip, {
+				autoAlpha: 0,
+				y: 8,
+				...motionDefaults,
+			});
+		};
+
+		const openChat = () => {
+			isChatOpen = true;
+			chatTrigger.setAttribute("aria-expanded", "true");
+			chatPanel.setAttribute("aria-hidden", "false");
+			hideTooltip();
+			gsap.to(chatPanel, {
+				autoAlpha: 1,
+				y: 0,
+				scale: 1,
+				pointerEvents: "auto",
+				...motionDefaults,
+			});
+		};
+
+		const closeChatPanel = () => {
+			isChatOpen = false;
+			chatTrigger.setAttribute("aria-expanded", "false");
+			chatPanel.setAttribute("aria-hidden", "true");
+			gsap.to(chatPanel, {
+				autoAlpha: 0,
+				y: 18,
+				scale: 0.96,
+				pointerEvents: "none",
+				...motionDefaults,
+			});
+		};
+
+		const toggleChatPanel = () => {
+			if (isChatOpen) {
+				closeChatPanel();
+				return;
+			}
+
+			openChat();
+		};
+
+		const handleRootPointerEnter = () => {
+			showTooltip();
+			gsap.to(chatTrigger, {
+				scale: 1.03,
+				...motionDefaults,
+			});
+			gsap.to(fatWireframeMaterial, {
+				linewidth: isMobile ? 3.2 : 4.2,
+				opacity: 1,
+				...motionDefaults,
+			});
+		};
+
+		const handleRootPointerLeave = () => {
+			hideTooltip();
+			gsap.to(chatTrigger, {
+				scale: 1,
+				...motionDefaults,
+			});
+			gsap.to(fatWireframeMaterial, {
+				linewidth: isMobile ? 2.8 : 3.6,
+				opacity: 1,
+				...motionDefaults,
+			});
+		};
+
+		const handleDocumentPointerDown = (event: PointerEvent) => {
+			if (!isChatOpen) {
+				return;
+			}
+
+			if (event.target instanceof Node && !root.contains(event.target)) {
+				closeChatPanel();
+			}
+		};
+
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				closeChatPanel();
+			}
+		};
+
+		root.addEventListener("pointerenter", handleRootPointerEnter);
+		root.addEventListener("pointerleave", handleRootPointerLeave);
+		chatTrigger.addEventListener("focus", showTooltip);
+		chatTrigger.addEventListener("blur", hideTooltip);
+		chatTrigger.addEventListener("click", toggleChatPanel);
+		chatClose.addEventListener("click", closeChatPanel);
+		document.addEventListener("pointerdown", handleDocumentPointerDown);
+		window.addEventListener("keydown", handleEscape);
+
+		cleanups.push(() => root.removeEventListener("pointerenter", handleRootPointerEnter));
+		cleanups.push(() => root.removeEventListener("pointerleave", handleRootPointerLeave));
+		cleanups.push(() => chatTrigger.removeEventListener("focus", showTooltip));
+		cleanups.push(() => chatTrigger.removeEventListener("blur", hideTooltip));
+		cleanups.push(() => chatTrigger.removeEventListener("click", toggleChatPanel));
+		cleanups.push(() => chatClose.removeEventListener("click", closeChatPanel));
+		cleanups.push(() => document.removeEventListener("pointerdown", handleDocumentPointerDown));
+		cleanups.push(() => window.removeEventListener("keydown", handleEscape));
+
+		const clock = new THREE.Clock();
+		let frameId = 0;
+
+		const renderFrame = () => {
+			const elapsed = clock.getElapsedTime();
+
+			sphereLines.rotation.x = 0.75 + elapsed * 0.12;
+			sphereLines.rotation.y = 0.6 + elapsed * 0.18;
+			sphereLines.rotation.z = Math.sin(elapsed * 0.45) * 0.08;
+			figureGroup.rotation.z = Math.sin(elapsed * 0.45) * 0.05;
+			figureGroup.position.y = Math.sin(elapsed * 0.9) * 0.16;
+			figureRenderer.render(figureScene, figureCamera);
+
+			if (!reduceMotion) {
+				frameId = window.requestAnimationFrame(renderFrame);
+			}
+		};
+
+		renderFrame();
+
+		const cleanup = () => {
+			window.cancelAnimationFrame(frameId);
+			cleanups.forEach((dispose) => dispose());
+			sphereGeometry.dispose();
+			fatWireframeGeometry.dispose();
+			fatWireframeMaterial.dispose();
+			figureRenderer.dispose();
+		};
+
+		window.addEventListener("pagehide", cleanup, { once: true });
+	}
+</script>

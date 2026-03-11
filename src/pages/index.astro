@@ -1,0 +1,245 @@
+---
+import TechScene from "../components/TechScene.astro";
+import "../styles/global.css";
+
+const works = [
+	{
+		id: "01",
+		year: "2026",
+		title: "Kinetic Archive",
+		category: "Portfolio System",
+		description:
+			"An index of visual experiments shaped as a restrained, motion-led archive with strong typography and modular rhythm.",
+		accent: "from-stone-100 via-stone-300 to-stone-900",
+	},
+	{
+		id: "02",
+		year: "2025",
+		title: "Silent Commerce",
+		category: "Brand Experience",
+		description:
+			"A retail landing page reduced to contrast, pacing and image-free storytelling for a more tactile browsing flow.",
+		accent: "from-zinc-100 via-neutral-400 to-zinc-950",
+	},
+	{
+		id: "03",
+		year: "2025",
+		title: "Frame Shift",
+		category: "Motion Direction",
+		description:
+			"Directional transitions and full-screen compositions designed to make navigation feel cinematic without becoming heavy.",
+		accent: "from-amber-100 via-orange-300 to-neutral-950",
+	},
+	{
+		id: "04",
+		year: "2024",
+		title: "North Grid",
+		category: "Frontend Development",
+		description:
+			"A structured build for immersive content, balancing engineering clarity with a deliberate editorial surface.",
+		accent: "from-lime-100 via-emerald-300 to-zinc-950",
+	},
+];
+
+const services = [
+	"Creative frontend development",
+	"Motion systems and transitions",
+	"Design-to-code implementation",
+	"Landing pages and portfolios",
+];
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta
+			name="description"
+			content="Creative frontend portfolio inspired by the editorial rhythm and minimalist structure of unshift.jp."
+		/>
+		<title>Nacho Dev | Creative Frontend Portfolio</title>
+	</head>
+	<body class="selection:bg-stone-950 selection:text-stone-50">
+		<div class="site-shell">
+			<TechScene />
+			<div class="ambient-orb ambient-orb-left"></div>
+			<div class="ambient-orb ambient-orb-right"></div>
+			<div class="grid-surface"></div>
+
+			<header class="pointer-events-none fixed inset-x-0 top-0 z-30">
+				<div class="mx-auto flex max-w-400 items-center justify-between px-5 py-5 md:px-8 md:py-7">
+					<a
+						href="#top"
+						class="pointer-events-auto inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.35em] text-stone-700 transition hover:text-stone-950"
+					>
+						<span class="inline-block h-2 w-2 rounded-full bg-stone-950"></span>
+						nachodev
+					</a>
+
+					<nav class="pointer-events-auto hidden items-center gap-6 text-[11px] uppercase tracking-[0.28em] text-stone-500 md:flex">
+						<a class="transition hover:text-stone-950" href="#works">Works</a>
+						<a class="transition hover:text-stone-950" href="#about">About</a>
+						<a class="transition hover:text-stone-950" href="#contact">Contact</a>
+					</nav>
+				</div>
+			</header>
+
+			<div class="section-label left-5 hidden md:block">Portfolio / 2026</div>
+			<div class="section-label right-5 hidden md:block">Scroll to explore</div>
+
+			<main id="top" class="relative z-10">
+				<section class="mx-auto flex min-h-dvh max-w-400 items-end px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-36">
+					<div class="grid w-full gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.7fr)] lg:items-end lg:gap-10">
+						<div class="max-w-5xl">
+							<p class="mb-6 text-[11px] uppercase tracking-[0.35em] text-stone-500 md:mb-8">
+								Creative / Frontend Developer
+							</p>
+							<h1 class="max-w-[12ch] text-[clamp(3.6rem,10vw,8.75rem)] font-semibold uppercase leading-[0.88] tracking-[-0.05em] text-stone-950">
+								Quiet interfaces with a strong point of view.
+							</h1>
+							<p class="mt-8 max-w-xl text-balance text-base leading-7 text-stone-600 md:mt-10 md:text-lg md:leading-8">
+								A simple clone of the unshift.jp atmosphere: restrained, graphic and led by rhythm. Built in Astro with Tailwind and reduced to the parts that actually matter.
+							</p>
+
+							<div class="mt-10 flex flex-col gap-4 sm:flex-row md:mt-12">
+								<a class="button-rect" href="#works">
+									<span>View works</span>
+								</a>
+								<a class="button-text" href="#about">More details</a>
+							</div>
+
+							<div class="mt-12 grid gap-4 border-t border-stone-300/80 pt-6 text-sm text-stone-600 sm:grid-cols-3 md:mt-16">
+								<div>
+									<p class="text-[11px] uppercase tracking-[0.24em] text-stone-500">Based in</p>
+									<p class="mt-2 text-stone-900">Buenos Aires / Remote</p>
+								</div>
+								<div>
+									<p class="text-[11px] uppercase tracking-[0.24em] text-stone-500">Focus</p>
+									<p class="mt-2 text-stone-900">Portfolios, brand sites, motion-led UI</p>
+								</div>
+								<div>
+									<p class="text-[11px] uppercase tracking-[0.24em] text-stone-500">Stack</p>
+									<p class="mt-2 text-stone-900">Astro, Tailwind CSS, lightweight motion</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="hero-panel">
+							<div class="space-y-5">
+								<p class="text-[11px] uppercase tracking-[0.28em] text-stone-500">Current direction</p>
+								<div class="space-y-3 text-sm leading-7 text-stone-700">
+									<p>
+										Minimal structures, oversized type, subtle depth and interaction patterns that feel intentional instead of decorative.
+									</p>
+									<p>
+										The original site is more ambitious and interactive. This version keeps the same tone while staying maintainable inside a simple Astro starter.
+									</p>
+								</div>
+							</div>
+
+							<div class="mt-8 grid gap-3 text-sm text-stone-700 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+								<div class="rounded-full border border-stone-300/80 px-4 py-3">Editorial layout</div>
+								<div class="rounded-full border border-stone-300/80 px-4 py-3">Strong contrast</div>
+								<div class="rounded-full border border-stone-300/80 px-4 py-3">Three.js particles</div>
+								<div class="rounded-full border border-stone-300/80 px-4 py-3">Responsive grid</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section id="works" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+					<div class="mb-10 flex flex-col gap-5 border-t border-stone-300/80 pt-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+						<div>
+							<p class="text-[11px] uppercase tracking-[0.35em] text-stone-500">Selected works</p>
+							<h2 class="mt-3 max-w-[10ch] text-[clamp(2.8rem,6vw,5.5rem)] font-semibold uppercase leading-[0.9] tracking-[-0.05em] text-stone-950">
+								A focused list, not a gallery.
+							</h2>
+						</div>
+						<p class="max-w-md text-sm leading-7 text-stone-600 md:text-base">
+							Each item keeps the same composition language as the reference: index, year, title, supporting line and a bold rectangular preview surface.
+						</p>
+					</div>
+
+					<div class="space-y-6 md:space-y-8">
+						{works.map((work) => (
+							<article class="work-card group">
+								<div class="flex flex-col gap-8 lg:grid lg:grid-cols-[96px_minmax(0,0.8fr)_minmax(280px,1fr)] lg:items-center lg:gap-10">
+									<div class="flex items-center gap-3 text-stone-500 lg:block lg:space-y-2">
+										<p class="text-sm uppercase tracking-[0.28em]">{work.id}</p>
+										<p class="text-xs uppercase tracking-[0.24em]">{work.year}</p>
+									</div>
+
+									<div>
+										<p class="text-[11px] uppercase tracking-[0.28em] text-stone-500">{work.category}</p>
+										<h3 class="mt-3 text-[clamp(2rem,4vw,3.6rem)] font-semibold uppercase leading-[0.95] tracking-[-0.04em] text-stone-950 transition duration-500 group-hover:translate-x-1">
+											{work.title}
+										</h3>
+										<p class="mt-4 max-w-xl text-sm leading-7 text-stone-600 md:text-base">
+											{work.description}
+										</p>
+									</div>
+
+									<div class:list={["preview-surface", "bg-linear-to-br", work.accent]}>
+										<div class="preview-inner">
+											<div class="preview-grid"></div>
+											<div class="preview-label">Open case</div>
+										</div>
+									</div>
+								</div>
+							</article>
+						))}
+					</div>
+				</section>
+
+				<section id="about" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+					<div class="grid gap-10 border-t border-stone-300/80 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)] lg:gap-16">
+						<div>
+							<p class="text-[11px] uppercase tracking-[0.35em] text-stone-500">About</p>
+							<h2 class="mt-3 max-w-[11ch] text-[clamp(2.6rem,5vw,4.5rem)] font-semibold uppercase leading-[0.92] tracking-[-0.05em] text-stone-950">
+								Built like a quiet poster with interaction.
+							</h2>
+						</div>
+
+						<div class="grid gap-10 md:grid-cols-2">
+							<div>
+								<p class="text-sm leading-7 text-stone-600 md:text-base">
+									This page is intentionally simple. It recreates the mood of unshift.jp through spacing, typographic scale, fixed labels and strong project blocks, but avoids the original site's heavier transition system.
+								</p>
+								<p class="mt-5 text-sm leading-7 text-stone-600 md:text-base">
+									That makes it a better starting point for your portfolio: easier to extend, easier to maintain and already aligned with Astro plus Tailwind.
+								</p>
+							</div>
+
+							<div>
+								<p class="text-[11px] uppercase tracking-[0.28em] text-stone-500">Services</p>
+								<ul class="mt-4 space-y-3 text-sm leading-7 text-stone-700 md:text-base">
+									{services.map((service) => <li class="border-b border-stone-300/70 pb-3">{service}</li>)}
+								</ul>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<footer id="contact" class="mx-auto max-w-400 px-5 pb-10 pt-14 md:px-8 md:pb-14 md:pt-20">
+					<div class="grid gap-8 border-t border-stone-300/80 pt-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+						<div>
+							<p class="text-[11px] uppercase tracking-[0.35em] text-stone-500">Contact</p>
+							<h2 class="mt-3 max-w-[11ch] text-[clamp(2.4rem,5vw,4.5rem)] font-semibold uppercase leading-[0.92] tracking-[-0.05em] text-stone-950">
+								Let the next project be equally precise.
+							</h2>
+						</div>
+
+						<div class="space-y-3 text-sm uppercase tracking-[0.24em] text-stone-600">
+							<a class="block transition hover:text-stone-950" href="mailto:hola@nachodev.com">hola@nachodev.com</a>
+							<a class="block transition hover:text-stone-950" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+							<a class="block transition hover:text-stone-950" href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+						</div>
+					</div>
+				</footer>
+			</main>
+		</div>
+	</body>
+</html>
