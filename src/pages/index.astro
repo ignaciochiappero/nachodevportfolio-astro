@@ -1,52 +1,67 @@
 ---
 import TechScene from "../components/TechScene.astro";
 import "../styles/global.css";
+import {
+	personalInfo,
+	projects,
+	socialNetworks,
+	aboutText,
+	statistics,
+	services,
+	technologies,
+	careerTimeline,
+} from "../data/portfolio-data";
+import type { TechnologyCategory } from "../data/portfolio-data";
 
-const works = [
-	{
-		id: "01",
-		year: "2026",
-		title: "Kinetic Archive",
-		category: "Portfolio System",
-		description:
-			"An index of visual experiments shaped as a restrained, motion-led archive with strong typography and modular rhythm.",
-		accent: "from-stone-100 via-stone-300 to-stone-900",
-	},
-	{
-		id: "02",
-		year: "2025",
-		title: "Silent Commerce",
-		category: "Brand Experience",
-		description:
-			"A retail landing page reduced to contrast, pacing and image-free storytelling for a more tactile browsing flow.",
-		accent: "from-zinc-100 via-neutral-400 to-zinc-950",
-	},
-	{
-		id: "03",
-		year: "2025",
-		title: "Frame Shift",
-		category: "Motion Direction",
-		description:
-			"Directional transitions and full-screen compositions designed to make navigation feel cinematic without becoming heavy.",
-		accent: "from-amber-100 via-orange-300 to-neutral-950",
-	},
-	{
-		id: "04",
-		year: "2024",
-		title: "North Grid",
-		category: "Frontend Development",
-		description:
-			"A structured build for immersive content, balancing engineering clarity with a deliberate editorial surface.",
-		accent: "from-lime-100 via-emerald-300 to-zinc-950",
-	},
+// Sort: featured first, then by year descending
+const sortedProjects = [...projects].sort((a, b) => {
+	if (a.featured && !b.featured) return -1;
+	if (!a.featured && b.featured) return 1;
+	return b.year - a.year;
+});
+
+const projectCategoryLabels: Record<string, string> = {
+	platform: "Platform",
+	commerce: "E-Commerce",
+	brand: "Brand / Portfolio",
+	ai: "AI Application",
+	vision: "Computer Vision",
+};
+
+// Social networks with proper display names for contact
+const githubLink = socialNetworks.find((s) => s.name === "GitHub");
+const linkedinLink = socialNetworks.find((s) => s.name === "LinkedIn");
+const whatsappLink = socialNetworks.find((s) => s.name === "WhatsApp");
+const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
+
+// Group technologies by category in defined order
+const techCategoryOrder: TechnologyCategory[] = [
+	"frontend",
+	"backend",
+	"database",
+	"ai",
+	"cloud",
+	"tooling",
+	"automation",
 ];
 
-const services = [
-	"Creative frontend development",
-	"Motion systems and transitions",
-	"Design-to-code implementation",
-	"Landing pages and portfolios",
-];
+const techByCategory = techCategoryOrder.reduce<Record<TechnologyCategory, typeof technologies>>(
+	(acc, cat) => {
+		acc[cat] = technologies.filter((t) => t.category === cat);
+		return acc;
+	},
+	{} as Record<TechnologyCategory, typeof technologies>,
+);
+
+const techCategoryLabels: Record<TechnologyCategory, string> = {
+	frontend: "Frontend",
+	backend: "Backend",
+	database: "Database",
+	ai: "AI & ML",
+	cloud: "Cloud",
+	tooling: "Tooling",
+	automation: "Automation",
+};
 ---
 
 <html lang="en">
@@ -62,147 +77,296 @@ const services = [
 		/>
 		<title>Nacho Dev | Creative Frontend Portfolio</title>
 	</head>
-	<body class="selection:bg-stone-950 selection:text-stone-50">
+	<body class="selection:bg-white/10 selection:text-white">
 		<div class="site-shell">
 			<TechScene />
 			<div class="ambient-orb ambient-orb-left"></div>
 			<div class="ambient-orb ambient-orb-right"></div>
 			<div class="grid-surface"></div>
 
-			<header class="pointer-events-none fixed inset-x-0 top-0 z-30">
+		<header class="pointer-events-none fixed inset-x-0 top-0 z-30">
 				<div class="mx-auto flex max-w-400 items-center justify-between px-5 py-5 md:px-8 md:py-7">
 					<a
 						href="#top"
-						class="pointer-events-auto inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.35em] text-stone-700 transition hover:text-stone-950"
+						class="pointer-events-auto inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.35em] text-white/50 transition-opacity duration-200 hover:opacity-50"
 					>
-						<span class="inline-block h-2 w-2 rounded-full bg-stone-950"></span>
+						<span class="inline-block h-2 w-2 rounded-full bg-white/80"></span>
 						nachodev
 					</a>
-
-					<nav class="pointer-events-auto hidden items-center gap-6 text-[11px] uppercase tracking-[0.28em] text-stone-500 md:flex">
-						<a class="transition hover:text-stone-950" href="#works">Works</a>
-						<a class="transition hover:text-stone-950" href="#about">About</a>
-						<a class="transition hover:text-stone-950" href="#contact">Contact</a>
-					</nav>
 				</div>
 			</header>
+
+			<!-- ── PILL NAV ──────────────────────────────────────────────────── -->
+			<nav class="pill-nav" id="pillNav" aria-label="Site navigation">
+				<a href="#top" class="pill-nav__link pill-nav__link--active" data-section="top">Home</a>
+				<a href="#works" class="pill-nav__link" data-section="works">Works</a>
+				<a href="#about" class="pill-nav__link" data-section="about">About</a>
+				<a href="#services" class="pill-nav__link" data-section="services">Services</a>
+				<a href="#stack" class="pill-nav__link" data-section="stack">Stack</a>
+				<a href="#experience" class="pill-nav__link" data-section="experience">Experience</a>
+				<a href="#contact" class="pill-nav__link" data-section="contact">Contact</a>
+			</nav>
 
 			<div class="section-label left-5 hidden md:block">Portfolio / 2026</div>
 			<div class="section-label right-5 hidden md:block">Scroll to explore</div>
 
 			<main id="top" class="relative z-10">
+				<!-- ── HERO ──────────────────────────────────────────────────────── -->
 				<section class="mx-auto flex min-h-dvh max-w-400 items-end px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-36">
 					<div class="grid w-full gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.7fr)] lg:items-end lg:gap-10">
 						<div class="max-w-5xl">
-							<p class="mb-6 text-[11px] uppercase tracking-[0.35em] text-stone-500 md:mb-8">
-								Creative / Frontend Developer
+
+							<!-- Availability badge -->
+							{personalInfo.availableForWork && (
+								<div class="availability-badge">
+									<span class="availability-dot"></span>
+									<span>Disponible para proyectos</span>
+								</div>
+							)}
+
+							<p class="mb-6 font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40 md:mb-8">
+								{personalInfo.role}
 							</p>
-							<h1 class="max-w-[12ch] text-[clamp(3.6rem,10vw,8.75rem)] font-semibold uppercase leading-[0.88] tracking-[-0.05em] text-stone-950">
-								Quiet interfaces with a strong point of view.
+
+							<h1 class="max-w-[12ch] text-[clamp(3.6rem,10vw,8.75rem)] font-light uppercase leading-[0.88] tracking-[-0.03em] text-white">
+								{personalInfo.tagline}
 							</h1>
-							<p class="mt-8 max-w-xl text-balance text-base leading-7 text-stone-600 md:mt-10 md:text-lg md:leading-8">
-								A simple clone of the unshift.jp atmosphere: restrained, graphic and led by rhythm. Built in Astro with Tailwind and reduced to the parts that actually matter.
+
+							<p class="mt-5 font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40">
+								{personalInfo.role} &mdash; {personalInfo.location}
 							</p>
 
 							<div class="mt-10 flex flex-col gap-4 sm:flex-row md:mt-12">
 								<a class="button-rect" href="#works">
-									<span>View works</span>
+									<span>Ver proyectos</span>
 								</a>
-								<a class="button-text" href="#about">More details</a>
+								<a class="button-text" href="#contact">Hablemos</a>
 							</div>
 
-			
 						</div>
-
 					</div>
 				</section>
 
-				<section id="works" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
-					<div class="mb-10 flex flex-col gap-5 border-t border-stone-300/80 pt-6 md:mb-14 md:flex-row md:items-end md:justify-between">
-						<div>
-							<p class="text-[11px] uppercase tracking-[0.35em] text-stone-500">Selected works</p>
-							<h2 class="mt-3 max-w-[10ch] text-[clamp(2.8rem,6vw,5.5rem)] font-semibold uppercase leading-[0.9] tracking-[-0.05em] text-stone-950">
-								A focused list, not a gallery.
-							</h2>
-						</div>
-						<p class="max-w-md text-sm leading-7 text-stone-600 md:text-base">
-							Each item keeps the same composition language as the reference: index, year, title, supporting line and a bold rectangular preview surface.
-						</p>
+			<!-- ── WORKS ─────────────────────────────────────────────────────── -->
+			<section id="works" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+				<div class="mb-10 flex flex-col gap-5 border-t border-white/10 pt-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+					<div>
+						<p class="font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40">Selected works</p>
+						<h2 class="mt-3 max-w-[10ch] text-[clamp(2.8rem,6vw,5.5rem)] font-light uppercase leading-[0.9] tracking-[-0.03em] text-white">
+							A focused list, not a gallery.
+						</h2>
 					</div>
+					<p class="max-w-md text-sm leading-7 text-white/40 md:text-base normal-case tracking-normal">
+						Proyectos reales — plataformas, e-commerce, herramientas de IA y experimentos de computer vision.
+					</p>
+				</div>
 
-					<div class="space-y-6 md:space-y-8">
-						{works.map((work) => (
-							<article class="work-card group">
-								<div class="flex flex-col gap-8 lg:grid lg:grid-cols-[96px_minmax(0,0.8fr)_minmax(280px,1fr)] lg:items-center lg:gap-10">
-									<div class="flex items-center gap-3 text-stone-500 lg:block lg:space-y-2">
-										<p class="text-sm uppercase tracking-[0.28em]">{work.id}</p>
-										<p class="text-xs uppercase tracking-[0.24em]">{work.year}</p>
+				<div class="section-cards">
+					{sortedProjects.map((project) => (
+						<div class="project-card">
+							{project.featured && (
+								<span class="project-card__featured">Featured</span>
+							)}
+							<span class="project-card__year">{project.year}</span>
+							<div class="project-card__image-container">
+								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+								<div class="project-card__overlay">
+									<div class="project-card__info">
+										<h5 class="project-card__title">{project.title}</h5>
+										<small class="project-card__category">
+											<span class="project-card__category-dot" aria-hidden="true"></span>
+											{projectCategoryLabels[project.category] ?? project.category}
+										</small>
 									</div>
+									<a
+										href={project.urlDemo || project.urlGithub || '#'}
+										class="project-card__link"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<span>View Project</span>
+										<svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+											<path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 11H8V13H12V16L16 12L12 8V11Z"></path>
+										</svg>
+									</a>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+			</section>
 
-									<div>
-										<p class="text-[11px] uppercase tracking-[0.28em] text-stone-500">{work.category}</p>
-										<h3 class="mt-3 text-[clamp(2rem,4vw,3.6rem)] font-semibold uppercase leading-[0.95] tracking-[-0.04em] text-stone-950 transition duration-500 group-hover:translate-x-1">
-											{work.title}
-										</h3>
-										<p class="mt-4 max-w-xl text-sm leading-7 text-stone-600 md:text-base">
-											{work.description}
+				<!-- ── ABOUT ─────────────────────────────────────────────────────── -->
+				<section id="about" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+					<div class="border-t border-white/10 pt-6">
+						<p class="section-tag">About</p>
+						<h2 class="mt-3 max-w-[12ch] text-[clamp(2.6rem,5vw,4.5rem)] font-light uppercase leading-[0.92] tracking-[-0.03em] text-white">
+							{personalInfo.name}
+						</h2>
+
+						<div class="about-content mt-10 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:gap-16">
+							<div class="about-text space-y-5">
+								{aboutText.map((paragraph) => (
+									<p class="text-sm leading-7 text-white/40 md:text-base md:leading-8 normal-case tracking-normal">
+										{paragraph}
+									</p>
+								))}
+							</div>
+
+							<div class="about-stats grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-4 lg:grid-cols-2">
+								{statistics.map((stat) => (
+									<div class="stat-item">
+										<p class="stat-value">
+											{stat.value}{stat.suffix ?? ""}
 										</p>
+										<p class="stat-label">{stat.label}</p>
 									</div>
+								))}
+							</div>
+						</div>
+					</div>
+				</section>
 
-									<div class:list={["preview-surface", "bg-linear-to-br", work.accent]}>
-										<div class="preview-inner">
-											<div class="preview-grid"></div>
-											<div class="preview-label">Open case</div>
+				<!-- ── SERVICES ───────────────────────────────────────────────────── -->
+				<section id="services" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+					<div class="border-t border-white/10 pt-6">
+						<p class="section-tag">Services</p>
+						<h2 class="mt-3 max-w-[10ch] text-[clamp(2.6rem,5vw,4.5rem)] font-light uppercase leading-[0.92] tracking-[-0.03em] text-white">
+							What I do
+						</h2>
+
+						<div class="services-grid mt-10 grid gap-4 sm:grid-cols-2 lg:gap-5">
+							{services.map((service) => (
+								<div class="service-card">
+									<h3 class="service-card__title">{service.title}</h3>
+									<p class="service-card__desc">{service.description}</p>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				<!-- ── STACK ──────────────────────────────────────────────────────── -->
+				<section id="stack" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+					<div class="border-t border-white/10 pt-6">
+						<p class="section-tag">Stack</p>
+						<h2 class="mt-3 max-w-[10ch] text-[clamp(2.6rem,5vw,4.5rem)] font-light uppercase leading-[0.92] tracking-[-0.03em] text-white">
+							Technologies
+						</h2>
+
+						<div class="stack-categories mt-10 space-y-10">
+							{techCategoryOrder.map((cat) => {
+								const techs = techByCategory[cat];
+								if (!techs || techs.length === 0) return null;
+								return (
+									<div class="stack-category">
+										<p class="stack-category__label">{techCategoryLabels[cat]}</p>
+										<div class="stack-grid mt-4">
+											{techs.map((tech) => (
+												<div class="tech-item">
+													<div class="tech-item__logo">
+														<img
+															src={tech.imageUrl}
+															alt={tech.name}
+															width="40"
+															height="40"
+															loading="lazy"
+															decoding="async"
+														/>
+													</div>
+													<p class="tech-item__name">{tech.name}</p>
+												</div>
+											))}
 										</div>
 									</div>
+								);
+							})}
+						</div>
+					</div>
+				</section>
+
+				<!-- ── EXPERIENCE ─────────────────────────────────────────────────── -->
+				<section id="experience" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
+					<div class="border-t border-white/10 pt-6">
+						<p class="section-tag">Experience</p>
+						<h2 class="mt-3 max-w-[10ch] text-[clamp(2.6rem,5vw,4.5rem)] font-light uppercase leading-[0.92] tracking-[-0.03em] text-white">
+							Career
+						</h2>
+
+						<div class="timeline mt-10">
+							{careerTimeline.map((entry) => (
+								<div class="timeline-item">
+									<p class="timeline-item__period">{entry.period}</p>
+									<h3 class="timeline-item__title">{entry.title}</h3>
+									<p class="timeline-item__role">{entry.role}</p>
+									<p class="timeline-item__desc">{entry.description}</p>
 								</div>
-							</article>
-						))}
-					</div>
-				</section>
-
-				<section id="about" class="mx-auto max-w-400 px-5 py-14 md:px-8 md:py-20">
-					<div class="grid gap-10 border-t border-stone-300/80 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)] lg:gap-16">
-						<div>
-							<p class="text-[11px] uppercase tracking-[0.35em] text-stone-500">About</p>
-							<h2 class="mt-3 max-w-[11ch] text-[clamp(2.6rem,5vw,4.5rem)] font-semibold uppercase leading-[0.92] tracking-[-0.05em] text-stone-950">
-								Built like a quiet poster with interaction.
-							</h2>
-						</div>
-
-						<div class="grid gap-10 md:grid-cols-2">
-							<div>
-								<p class="text-sm leading-7 text-stone-600 md:text-base">
-									This page is intentionally simple. It recreates the mood of unshift.jp through spacing, typographic scale, fixed labels and strong project blocks, but avoids the original site's heavier transition system.
-								</p>
-								<p class="mt-5 text-sm leading-7 text-stone-600 md:text-base">
-									That makes it a better starting point for your portfolio: easier to extend, easier to maintain and already aligned with Astro plus Tailwind.
-								</p>
-							</div>
-
-							<div>
-								<p class="text-[11px] uppercase tracking-[0.28em] text-stone-500">Services</p>
-								<ul class="mt-4 space-y-3 text-sm leading-7 text-stone-700 md:text-base">
-									{services.map((service) => <li class="border-b border-stone-300/70 pb-3">{service}</li>)}
-								</ul>
-							</div>
+							))}
 						</div>
 					</div>
 				</section>
 
+				<!-- ── CONTACT ───────────────────────────────────────────────────── -->
 				<footer id="contact" class="mx-auto max-w-400 px-5 pb-10 pt-14 md:px-8 md:pb-14 md:pt-20">
-					<div class="grid gap-8 border-t border-stone-300/80 pt-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+					<div class="grid gap-8 border-t border-white/10 pt-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
 						<div>
-							<p class="text-[11px] uppercase tracking-[0.35em] text-stone-500">Contact</p>
-							<h2 class="mt-3 max-w-[11ch] text-[clamp(2.4rem,5vw,4.5rem)] font-semibold uppercase leading-[0.92] tracking-[-0.05em] text-stone-950">
+							<p class="font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40">Contact</p>
+							<h2 class="mt-3 max-w-[11ch] text-[clamp(2.4rem,5vw,4.5rem)] font-light uppercase leading-[0.92] tracking-[-0.03em] text-white">
 								Let the next project be equally precise.
 							</h2>
 						</div>
 
-						<div class="space-y-3 text-sm uppercase tracking-[0.24em] text-stone-600">
-							<a class="block transition hover:text-stone-950" href="mailto:hola@nachodev.com">hola@nachodev.com</a>
-							<a class="block transition hover:text-stone-950" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
-							<a class="block transition hover:text-stone-950" href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+						<div class="space-y-3 font-[GeistMono,monospace] text-sm uppercase tracking-[0.24em] text-white/40">
+							<a
+								class="block transition-opacity duration-200 hover:opacity-50"
+								href={`mailto:${personalInfo.email}`}
+							>
+								{personalInfo.email}
+							</a>
+
+							{whatsappLink && (
+								<a
+									class="block transition-opacity duration-200 hover:opacity-50"
+									href={whatsappLink.url}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									WhatsApp
+								</a>
+							)}
+
+							{githubLink && (
+								<a
+									class="block transition-opacity duration-200 hover:opacity-50"
+									href={githubLink.url}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									GitHub
+								</a>
+							)}
+
+							{linkedinLink && (
+								<a
+									class="block transition-opacity duration-200 hover:opacity-50"
+									href={linkedinLink.url}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									LinkedIn
+								</a>
+							)}
+
+							{youtubeLink && (
+								<a
+									class="block transition-opacity duration-200 hover:opacity-50"
+									href={youtubeLink.url}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									YouTube
+								</a>
+							)}
 						</div>
 					</div>
 				</footer>
@@ -210,3 +374,183 @@ const services = [
 		</div>
 	</body>
 </html>
+
+<style>
+  /* ── Pill Navigation ─────────────────────────────────────────────────────── */
+
+  .pill-nav {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: fit-content;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(17, 17, 17, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(252, 252, 252, 0.10);
+    /* Mobile: allow horizontal scroll */
+    max-width: calc(100vw - 2rem);
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .pill-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill-nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(136, 136, 136, 1); /* --muted equivalent */
+    text-decoration: none;
+    transition: color 200ms ease;
+    flex-shrink: 0;
+  }
+
+  .pill-nav__link:hover {
+    color: #fcfcfc;
+  }
+
+  .pill-nav__link--active {
+    color: #fcfcfc;
+  }
+
+  /* Active dot indicator */
+  .pill-nav__link--active::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: #D4A853;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin-bottom: 1px;
+  }
+
+  /* Separator dots between links */
+  .pill-nav__link + .pill-nav__link {
+    margin-left: 0.25rem;
+  }
+
+  .pill-nav__link + .pill-nav__link::after {
+    /* no separator — gap is enough */
+  }
+
+  /* On large screens, give a bit more gap */
+  @media (min-width: 640px) {
+    .pill-nav__link {
+      padding: 0.3rem 0.75rem;
+    }
+  }
+</style>
+
+<script>
+  // ── Project Cards — Scroll Reveal via IntersectionObserver ──────────────
+  (function () {
+    if (typeof IntersectionObserver === "undefined") {
+      // Fallback: show all cards immediately
+      document.querySelectorAll<HTMLElement>(".project-card").forEach((card) => {
+        card.classList.add("is-visible");
+      });
+      return;
+    }
+
+    const cards = document.querySelectorAll<HTMLElement>(".project-card");
+    if (!cards.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+
+    for (const card of cards) {
+      observer.observe(card);
+    }
+  })();
+
+  // ── Pill Nav — Active Section Tracking via IntersectionObserver ───────────
+  (function () {
+    const nav = document.getElementById("pillNav");
+    if (!nav) return;
+
+    const links = nav.querySelectorAll<HTMLAnchorElement>(".pill-nav__link[data-section]");
+    if (!links.length) return;
+
+    const sectionIds = Array.from(links).map((link) => link.dataset.section).filter(Boolean) as string[];
+
+    // Map section id → nav link element
+    const linkMap = new Map<string, HTMLAnchorElement>();
+    for (const link of links) {
+      const section = link.dataset.section;
+      if (section) linkMap.set(section, link);
+    }
+
+    const setActive = (id: string) => {
+      for (const link of links) {
+        const isActive = link.dataset.section === id;
+        link.classList.toggle("pill-nav__link--active", isActive);
+      }
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    // Track the most "visible" section
+    const visibilityMap = new Map<string, number>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          visibilityMap.set(entry.target.id, entry.intersectionRatio);
+        }
+
+        // Find the section with highest intersection ratio
+        let topId = "";
+        let topRatio = -1;
+        for (const [id, ratio] of visibilityMap) {
+          if (ratio > topRatio) {
+            topRatio = ratio;
+            topId = id;
+          }
+        }
+
+        if (topId) {
+          // "top" section → "Home" link
+          setActive(topId === "top" ? "top" : topId);
+        }
+      },
+      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0], rootMargin: "-10% 0px -10% 0px" }
+    );
+
+    // Observe all relevant sections
+    for (const id of sectionIds) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+  })();
+</script>

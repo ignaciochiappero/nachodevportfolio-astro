@@ -46,59 +46,46 @@ const positionStyle = [
 			aria-modal="false"
 			aria-hidden="true"
 		>
-			<div class="chat-panel__topbar"></div>
 			<div class="chat-panel__header">
 				<div>
-					<p class="chat-panel__eyebrow">{eyebrow}</p>
 					<h2 class="chat-panel__title">{title}</h2>
+					<p class="chat-panel__status" data-chat-status>30 mensajes disponibles</p>
 				</div>
-				<button type="button" class="chat-panel__close" data-chat-close aria-label="Cerrar chat">
-					Cerrar
-				</button>
-			</div>
-
-			<div class="chat-panel__meta">
-				<p class="chat-panel__status" data-chat-status>30 mensajes disponibles hoy</p>
-				<div class="chat-panel__meta-actions">
+				<div class="chat-panel__header-actions">
 					<button type="button" class="chat-panel__meta-button" data-chat-reset hidden>
 						Limpiar
 					</button>
-					<button type="button" class="chat-panel__meta-button" data-chat-identity hidden>
-						Cambiar nombre
+					<button type="button" class="chat-panel__close" data-chat-close aria-label="Cerrar chat">
+						&times;
 					</button>
 				</div>
 			</div>
 
 			<div class="chat-panel__body">
 				<div class="chat-onboarding" data-chat-onboarding>
-					<div class="chat-message chat-message--system">
-						<span class="chat-message__label">Contexto</span>
-						<p>
-							Este chat usa la misma base de IA del otro portfolio, pero adaptada a esta version en Astro.
-						</p>
-					</div>
 					<form class="chat-onboarding__form" data-chat-name-form>
-						<label class="chat-onboarding__label" for="floating-chat-name">Tu nombre</label>
-						<input
-							id="floating-chat-name"
-							class="chat-onboarding__input"
-							type="text"
-							name="name"
-							maxlength="30"
-							autocomplete="name"
-							placeholder="Como te llamas?"
-							data-chat-name-input
-						/>
+						<label class="chat-onboarding__label" for="floating-chat-name">Tu nombre para empezar</label>
+						<div class="chat-onboarding__row">
+							<input
+								id="floating-chat-name"
+								class="chat-onboarding__input"
+								type="text"
+								name="name"
+								maxlength="30"
+								autocomplete="name"
+								placeholder="Como te llamas?"
+								data-chat-name-input
+							/>
+							<button type="submit" class="chat-onboarding__submit">Iniciar</button>
+						</div>
 						<p class="chat-onboarding__error" data-chat-name-error hidden></p>
-						<button type="submit" class="chat-onboarding__submit">Iniciar chat</button>
 					</form>
 				</div>
 
 				<div class="chat-conversation" data-chat-conversation hidden>
 					<div class="chat-empty" data-chat-empty>
-						<p class="chat-empty__title">Listo para charlar.</p>
 						<p class="chat-empty__text">
-							Preguntame sobre proyectos, stack, experiencia, servicios o como trabajo.
+							Preguntame sobre proyectos, stack o como trabajo.
 						</p>
 					</div>
 					<div class="chat-messages" data-chat-messages role="log" aria-live="polite"></div>
@@ -110,7 +97,7 @@ const positionStyle = [
 							Stack
 						</button>
 						<button type="button" class="chat-suggestion" data-chat-suggestion="Como podria trabajar con vos?">
-							Trabajar juntos
+							Contacto
 						</button>
 					</div>
 					<div class="chat-error" data-chat-error hidden></div>
@@ -126,14 +113,18 @@ const positionStyle = [
 						maxlength="1200"
 						placeholder="Escribi tu mensaje..."
 					></textarea>
-					<button type="submit" class="chat-composer__submit" data-chat-submit>
-						Enviar
+					<button type="submit" class="chat-composer__submit" data-chat-submit aria-label="Enviar">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
 					</button>
 				</form>
 
 				<div class="chat-panel__actions">
-					<a class="chat-panel__action" href={mailHref}>Mail</a>
-					<a class="chat-panel__action" href={contactHref}>Contacto</a>
+					<a class="chat-panel__action" href={mailHref} title="Enviar mail">Mail</a>
+					<span class="chat-panel__action-dot"></span>
+					<a class="chat-panel__action" href={contactHref} title="Ir a contacto">Contacto</a>
+					<button type="button" class="chat-panel__action" data-chat-identity hidden>
+						Cambiar nombre
+					</button>
 				</div>
 			</div>
 		</section>
@@ -152,6 +143,199 @@ const positionStyle = [
 		</button>
 	</div>
 </div>
+
+<style>
+  /* ── Chat Dark Theme Overrides ─────────────────────────────────────────── */
+
+  /* Tooltip */
+  .chat-tooltip {
+    border: 1px solid rgba(252, 252, 252, 0.10);
+    background: rgba(17, 17, 17, 0.90);
+    backdrop-filter: blur(16px);
+    color: #fcfcfc;
+  }
+
+  .chat-tooltip__line {
+    background: rgba(252, 252, 252, 0.5);
+  }
+
+  /* Sphere shadow — lighter for dark bg */
+  .chat-trigger::after {
+    background: rgba(252, 252, 252, 0.08);
+  }
+
+  .chat-trigger:focus-visible {
+    outline: 2px solid rgba(252, 252, 252, 0.22);
+  }
+
+  /* Panel */
+  .chat-panel {
+    background: rgba(17, 17, 17, 0.95);
+    border: 1px solid rgba(252, 252, 252, 0.10);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.40);
+    color: #fcfcfc;
+  }
+
+  .chat-panel__header {
+    border-bottom: 1px solid rgba(252, 252, 252, 0.08);
+  }
+
+  .chat-panel__title {
+    color: #fcfcfc;
+  }
+
+  .chat-panel__status {
+    color: rgba(252, 252, 252, 0.35);
+  }
+
+  .chat-panel__close {
+    border: 1px solid rgba(252, 252, 252, 0.12);
+    color: rgba(252, 252, 252, 0.5);
+  }
+
+  .chat-panel__close:hover {
+    background: rgba(252, 252, 252, 0.06);
+    color: rgba(252, 252, 252, 0.85);
+  }
+
+  .chat-panel__meta-button {
+    border: 1px solid rgba(252, 252, 252, 0.08);
+    color: rgba(252, 252, 252, 0.40);
+  }
+
+  .chat-panel__meta-button:hover {
+    background: rgba(252, 252, 252, 0.06);
+    color: rgba(252, 252, 252, 0.7);
+  }
+
+  /* Onboarding */
+  .chat-onboarding__label {
+    color: rgba(252, 252, 252, 0.55);
+  }
+
+  .chat-onboarding__input,
+  .chat-composer__input {
+    border: 1px solid rgba(252, 252, 252, 0.12);
+    background: rgba(252, 252, 252, 0.05);
+    color: #fcfcfc;
+  }
+
+  .chat-onboarding__input::placeholder,
+  .chat-composer__input::placeholder {
+    color: rgba(252, 252, 252, 0.30);
+  }
+
+  .chat-onboarding__input:focus,
+  .chat-composer__input:focus {
+    border-color: rgba(252, 252, 252, 0.28);
+    background: rgba(252, 252, 252, 0.08);
+  }
+
+  .chat-onboarding__submit {
+    border: 1px solid rgba(252, 252, 252, 0.14);
+    background: rgba(252, 252, 252, 0.10);
+    color: #fcfcfc;
+  }
+
+  .chat-onboarding__submit:hover {
+    background: rgba(252, 252, 252, 0.16);
+  }
+
+  .chat-onboarding__error,
+  .chat-error {
+    border: 1px solid rgba(252, 252, 252, 0.08);
+    background: rgba(252, 252, 252, 0.03);
+    color: rgba(252, 252, 252, 0.55);
+  }
+
+  /* Conversation */
+  .chat-empty__text {
+    color: rgba(252, 252, 252, 0.40);
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(252, 252, 252, 0.12);
+  }
+
+  /* Bubbles */
+  .chat-bubble {
+    border: 1px solid rgba(252, 252, 252, 0.07);
+    color: #fcfcfc;
+  }
+
+  .chat-bubble--user {
+    background: rgba(252, 252, 252, 0.08);
+    color: #fcfcfc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
+  }
+
+  .chat-bubble--assistant {
+    background: rgba(252, 252, 252, 0.04);
+    color: #fcfcfc;
+  }
+
+  /* Suggestions */
+  .chat-suggestion {
+    border: 1px solid rgba(252, 252, 252, 0.10);
+    background: rgba(252, 252, 252, 0.04);
+    color: #fcfcfc;
+  }
+
+  .chat-suggestion:hover {
+    border-color: rgba(252, 252, 252, 0.22);
+    background: rgba(252, 252, 252, 0.08);
+  }
+
+  /* Typing indicator */
+  .chat-typing {
+    border: 1px solid rgba(252, 252, 252, 0.07);
+    background: rgba(252, 252, 252, 0.04);
+  }
+
+  .chat-typing span {
+    background: rgba(252, 252, 252, 0.35);
+  }
+
+  /* Footer */
+  .chat-panel__footer {
+    border-top: 1px solid rgba(252, 252, 252, 0.06);
+  }
+
+  /* Composer submit */
+  .chat-composer__submit {
+    border: 1px solid rgba(252, 252, 252, 0.12);
+    background: rgba(252, 252, 252, 0.10);
+    color: #fcfcfc;
+  }
+
+  .chat-composer__submit:hover {
+    background: rgba(252, 252, 252, 0.18);
+  }
+
+  /* Actions */
+  .chat-panel__action {
+    color: rgba(252, 252, 252, 0.30);
+  }
+
+  .chat-panel__action:hover {
+    color: rgba(252, 252, 252, 0.70);
+  }
+
+  .chat-panel__action-dot {
+    background: rgba(252, 252, 252, 0.18);
+  }
+
+  /* Links inside chat */
+  .chat-link {
+    color: #D4A853;
+    text-decoration-color: rgba(212, 168, 83, 0.4);
+  }
+
+  .chat-link:hover {
+    text-decoration-color: #D4A853;
+  }
+</style>
 
 <script>
 	import * as THREE from "three";
@@ -345,7 +529,7 @@ const positionStyle = [
 
 		const updateStatus = () => {
 			const remaining = Math.max(0, CHAT_LIMITS.maxMessagesPerSession - messageCount);
-			chatStatus.textContent = remaining > 0 ? `${remaining} mensajes disponibles hoy` : "Limite diario alcanzado";
+			chatStatus.textContent = remaining > 0 ? `${remaining} mensajes disponibles` : "Limite diario alcanzado";
 		};
 
 		const persistHistory = () => {
@@ -372,7 +556,7 @@ const positionStyle = [
 			const disabled = isLoading || messageCount >= CHAT_LIMITS.maxMessagesPerSession;
 			composerInput.disabled = disabled;
 			composerSubmit.disabled = disabled || !composerInput.value.trim();
-			composerSubmit.textContent = isLoading ? "Pensando" : "Enviar";
+			composerSubmit.classList.toggle("chat-composer__submit--loading", isLoading);
 		};
 
 		const scrollMessagesToBottom = () => {
@@ -565,6 +749,10 @@ const positionStyle = [
 					assistantText += decoder.decode(value, { stream: true });
 					assistantMessage.content = assistantText;
 					renderUiState();
+					const streamingBubble = messagesEl.querySelector(".chat-bubble--assistant:last-of-type");
+					if (streamingBubble) {
+						streamingBubble.classList.add("chat-bubble--streaming");
+					}
 				}
 
 				assistantText += decoder.decode();
@@ -620,9 +808,9 @@ const positionStyle = [
 
 		const sphereGeometry = new THREE.IcosahedronGeometry(1.9, 0);
 		const fatWireframeGeometry = new WireframeGeometry2(sphereGeometry);
-		const fatWireframeMaterial = new LineMaterial({
-			color: 0x111111,
-			linewidth: isMobile ? 2.8 : 3.6,
+	const fatWireframeMaterial = new LineMaterial({
+		color: 0x888888,
+		linewidth: isMobile ? 2.8 : 3.6,
 			dashed: false,
 			transparent: true,
 			opacity: 0.94,
@@ -670,6 +858,7 @@ const positionStyle = [
 
 		const openChat = () => {
 			isChatOpen = true;
+			cancelAutoTooltip();
 			chatTrigger.setAttribute("aria-expanded", "true");
 			chatPanel.setAttribute("aria-hidden", "false");
 			hideTooltip();
@@ -678,7 +867,8 @@ const positionStyle = [
 				y: 0,
 				scale: 1,
 				pointerEvents: "auto",
-				...motionDefaults,
+				duration: reduceMotion ? 0 : 0.28,
+				ease: "power2.out",
 			});
 
 			window.setTimeout(() => {
@@ -696,10 +886,11 @@ const positionStyle = [
 			chatPanel.setAttribute("aria-hidden", "true");
 			gsap.to(chatPanel, {
 				autoAlpha: 0,
-				y: 18,
-				scale: 0.96,
+				y: 10,
+				scale: 0.97,
 				pointerEvents: "none",
-				...motionDefaults,
+				duration: reduceMotion ? 0 : 0.22,
+				ease: "power2.in",
 			});
 		};
 
@@ -712,7 +903,46 @@ const positionStyle = [
 			openChat();
 		};
 
+		// ── Auto-show tooltip logic ─────────────────────────────────────────────
+		let autoTooltipTimer: ReturnType<typeof setTimeout> | null = null;
+		let autoDismissTimer: ReturnType<typeof setTimeout> | null = null;
+
+		const cancelAutoTooltip = () => {
+			if (autoTooltipTimer !== null) {
+				clearTimeout(autoTooltipTimer);
+				autoTooltipTimer = null;
+			}
+			if (autoDismissTimer !== null) {
+				clearTimeout(autoDismissTimer);
+				autoDismissTimer = null;
+			}
+		};
+
+		const scheduleAutoTooltip = () => {
+			// Don't show if the user has already opened chat in this session
+			if (isChatOpen) {
+				return;
+			}
+
+			autoTooltipTimer = setTimeout(() => {
+				if (isChatOpen) {
+					return;
+				}
+
+				showTooltip();
+
+				// Auto-dismiss after 4 seconds, but only if the user isn't hovering
+				autoDismissTimer = setTimeout(() => {
+					if (!root.matches(":hover")) {
+						hideTooltip();
+					}
+				}, 4000);
+			}, 3000);
+		};
+
 		const handleRootPointerEnter = () => {
+			// Cancel pending auto-tooltip timers so hover takes full control
+			cancelAutoTooltip();
 			showTooltip();
 			targetRotationSpeed = hoverRotationSpeed;
 			gsap.to(chatTrigger, { scale: 0.8, ...motionDefaults });
@@ -830,6 +1060,7 @@ const positionStyle = [
 		loadPersistedState();
 		setCurrentSectionTracking();
 		renderUiState();
+		scheduleAutoTooltip();
 
 		const clock = new THREE.Clock();
 		let frameId = 0;
@@ -854,6 +1085,7 @@ const positionStyle = [
 
 		const cleanup = () => {
 			window.cancelAnimationFrame(frameId);
+			cancelAutoTooltip();
 			cleanups.forEach((dispose) => dispose());
 			sphereGeometry.dispose();
 			fatWireframeGeometry.dispose();
