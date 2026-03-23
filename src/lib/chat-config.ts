@@ -12,10 +12,6 @@ const SECTION_CONTEXTS: Record<string, string> = {
     "The user is viewing the Works section — Nacho's 6 featured projects: NexHub AI (AI platform), NEXGEN (modular CMS), NIA AI Assistant (voice AI), AI Sticker Maker, YouTube Clone, and Weather App. Featured projects (NexHub AI, NEXGEN, NIA) are shown first. You can explain project goals, tech decisions, and the kind of problems each one solves.",
   about:
     "The user is viewing the About section — background on Nacho as a Full Stack Developer and UI/UX designer from Córdoba, Argentina, with 3+ years of dev experience, 10+ years in design, 15 projects shipped, and 20+ technologies mastered. His passion for clean code, AI, and design-driven development is highlighted here.",
-  services:
-    "The user is viewing the Services section — Nacho offers 6 services: Web Development, Mobile Development, AI Integration, API Development, UI/UX Design, and DevOps & Cloud. You can explain each service and how they might fit the user's project needs.",
-  stack:
-    "The user is viewing the Stack section — 35 technologies organized by category: Frontend (React, Next.js, Astro, Tailwind, HTML, CSS, JavaScript, TypeScript), Backend (Node.js, NestJS, Python, Java, C++, GraphQL, Prisma), Database (MongoDB, PostgreSQL), AI (HuggingFace, OpenRouter, MCP), Cloud (Vercel, AWS, GCP, Docker, Git), Tooling (Vite, N8N), Design (Photoshop, After Effects, Sony Vegas, Corel).",
   experience:
     "The user is viewing the Experience section — Nacho's professional timeline: Full Stack Developer at NexHub (2024–Present), Freelance Developer (2023–Present), UI/UX Designer (2020–Present), Video Editor at La Voz del Interior (2019–2020), and Freelance Graphic Designer (2015–Present).",
   contact:
@@ -56,26 +52,7 @@ You can explain project goals, tech decisions, and the problems each one solves.
 ### 3. About
 Nacho is a Full Stack Developer and UI/UX designer from Córdoba, Argentina. Stats: 3+ years dev experience, 10+ years in design, 15 projects shipped, 20+ technologies. His profile highlights passion for clean code, interest in AI and emerging tech, and a strong design background.
 
-### 4. Services
-6 services offered:
-- Web Development
-- Mobile Development
-- AI Integration
-- API Development
-- UI/UX Design
-- DevOps & Cloud
-
-### 5. Stack
-35 technologies grouped by category:
-- **Frontend**: React, Next.js, Astro, Tailwind CSS, HTML, CSS, JavaScript, TypeScript
-- **Backend**: Node.js, NestJS, Python, Java, C++, GraphQL, Prisma
-- **Database**: MongoDB, PostgreSQL
-- **AI**: HuggingFace, OpenRouter, MCP
-- **Cloud**: Vercel, AWS, GCP, Docker, Git
-- **Tooling**: Vite, N8N
-- **Design**: Photoshop, After Effects, Sony Vegas, Corel
-
-### 6. Experience
+### 4. Experience
 Professional timeline:
 - Full Stack Developer at NexHub — 2024–Present
 - Freelance Developer — 2023–Present
@@ -83,7 +60,7 @@ Professional timeline:
 - Video Editor at La Voz del Interior — 2019–2020
 - Freelance Graphic Designer — 2015–Present
 
-### 7. Contact / Footer
+### 5. Contact / Footer
 - Email: nachochiappe@gmail.com
 - Social links: GitHub, LinkedIn, Twitter/X, Instagram
 
