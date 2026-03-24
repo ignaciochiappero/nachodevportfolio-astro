@@ -14,7 +14,7 @@ interface Props {
 const {
 	position = { bottom: "1rem", right: "1rem" },
 	mode = "absolute",
-	tooltipText = "Abrir chat IA",
+	tooltipText = "Chat with me",
 	title = "Chat con Nacho",
 	eyebrow = "IA / portfolio",
 	mailHref = "mailto:hola@nachodev.com?subject=Nuevo%20proyecto",
@@ -34,11 +34,6 @@ const positionStyle = [
 
 <div class="chat-dock" data-floating-sphere-chat style={positionStyle}>
 	<div class="chat-dock__stack">
-		<div class="chat-tooltip" data-chat-tooltip role="status" aria-live="polite">
-			<span class="chat-tooltip__line"></span>
-			<span>{tooltipText}</span>
-		</div>
-
 		<section
 			class="chat-panel"
 			data-chat-panel
@@ -47,7 +42,7 @@ const positionStyle = [
 			aria-hidden="true"
 		>
 			<div class="chat-panel__header">
-				<div>
+				<div class="chat-panel__header-info">
 					<h2 class="chat-panel__title">{title}</h2>
 					<p class="chat-panel__status" data-chat-status>30 mensajes disponibles</p>
 				</div>
@@ -56,7 +51,9 @@ const positionStyle = [
 						Limpiar
 					</button>
 					<button type="button" class="chat-panel__close" data-chat-close aria-label="Cerrar chat">
-						&times;
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+						</svg>
 					</button>
 				</div>
 			</div>
@@ -114,7 +111,10 @@ const positionStyle = [
 						placeholder="Escribi tu mensaje..."
 					></textarea>
 					<button type="submit" class="chat-composer__submit" data-chat-submit aria-label="Enviar">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+							<line x1="22" y1="2" x2="11" y2="13"></line>
+							<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+						</svg>
 					</button>
 				</form>
 
@@ -129,211 +129,557 @@ const positionStyle = [
 			</div>
 		</section>
 
-		<button
-			type="button"
-			class="chat-trigger"
-			data-chat-trigger
-			aria-label="Abrir chat"
-			aria-haspopup="dialog"
-			aria-expanded="false"
-		>
-			<span class="chat-trigger__inner">
-				<canvas class="chat-trigger__canvas" data-chat-figure></canvas>
-			</span>
-		</button>
+		<!-- Trigger wrap: positions tooltip to the left of sphere -->
+		<div class="chat-trigger-wrap">
+			<!-- Tooltip: floats to the LEFT of the sphere -->
+			<div class="chat-tooltip" data-chat-tooltip role="status" aria-live="polite">
+				<span>{tooltipText}</span>
+				<!-- Caret pointing right toward sphere -->
+				<span class="chat-tooltip__caret" aria-hidden="true"></span>
+			</div>
+
+			<button
+				type="button"
+				class="chat-trigger"
+				data-chat-trigger
+				aria-label="Abrir chat"
+				aria-haspopup="dialog"
+				aria-expanded="false"
+			>
+				<span class="chat-trigger__inner">
+					<canvas class="chat-trigger__canvas" data-chat-figure></canvas>
+				</span>
+			</button>
+		</div>
 	</div>
 </div>
 
 <style>
-  /* ── Chat Dark Theme Overrides ─────────────────────────────────────────── */
+  /* ── Trigger wrap: contains sphere + tooltip side by side ───────────── */
+  .chat-trigger-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
 
-  /* Tooltip */
+  /* ── Tooltip: float to the LEFT of the sphere ─────────────────────────── */
+
   .chat-tooltip {
+    /* Positioned to the left of the sphere, vertically centered */
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    /* Glass styling */
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 0.45rem 0.85rem;
+    border-radius: 10px;
     border: 1px solid rgba(252, 252, 252, 0.10);
-    background: rgba(17, 17, 17, 0.90);
-    backdrop-filter: blur(16px);
-    color: #fcfcfc;
+    background: rgba(17, 17, 17, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    /* Typography */
+    font-family: 'GeistMono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(252, 252, 252, 0.85);
+    white-space: nowrap;
+    pointer-events: none;
   }
 
+  /* Caret pointing right → toward the sphere */
+  .chat-tooltip__caret {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 6px solid rgba(17, 17, 17, 0.88);
+  }
+
+  /* The old line element is gone — hide any leftover */
   .chat-tooltip__line {
-    background: rgba(252, 252, 252, 0.5);
+    display: none;
   }
 
-  /* Sphere shadow — lighter for dark bg */
+  /* ── Sphere trigger shadow — keep subtle ─────────────────────────────── */
   .chat-trigger::after {
-    background: rgba(252, 252, 252, 0.08);
+    background: rgba(252, 252, 252, 0.06);
   }
 
   .chat-trigger:focus-visible {
     outline: 2px solid rgba(252, 252, 252, 0.22);
   }
 
-  /* Panel */
+  /* ── Chat Panel — dark glassmorphism ─────────────────────────────────── */
   .chat-panel {
-    background: rgba(17, 17, 17, 0.95);
-    border: 1px solid rgba(252, 252, 252, 0.10);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.40);
-    color: #fcfcfc;
+    background: rgba(17, 17, 17, 0.88);
+    border: 1px solid rgba(252, 252, 252, 0.08);
+    border-radius: 20px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.45),
+      0 1px 0 rgba(252, 252, 252, 0.04) inset;
+    color: rgba(252, 252, 252, 0.9);
+    overflow: hidden;
   }
 
+  /* Header */
   .chat-panel__header {
-    border-bottom: 1px solid rgba(252, 252, 252, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(252, 252, 252, 0.06);
+  }
+
+  .chat-panel__header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
   .chat-panel__title {
-    color: #fcfcfc;
+    font-family: 'BlenderPro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: rgba(252, 252, 252, 0.95);
   }
 
   .chat-panel__status {
-    color: rgba(252, 252, 252, 0.35);
+    font-family: 'GeistMono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(252, 252, 252, 0.30);
+    margin-top: 0;
   }
 
-  .chat-panel__close {
-    border: 1px solid rgba(252, 252, 252, 0.12);
-    color: rgba(252, 252, 252, 0.5);
+  .chat-panel__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
   }
 
-  .chat-panel__close:hover {
-    background: rgba(252, 252, 252, 0.06);
-    color: rgba(252, 252, 252, 0.85);
-  }
-
+  /* Meta button (Limpiar) — glass style */
   .chat-panel__meta-button {
     border: 1px solid rgba(252, 252, 252, 0.08);
-    color: rgba(252, 252, 252, 0.40);
+    border-radius: 8px;
+    background: rgba(252, 252, 252, 0.04);
+    padding: 0.3rem 0.6rem;
+    font-family: 'GeistMono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(252, 252, 252, 0.35);
+    cursor: pointer;
+    transition: opacity 200ms ease, background 200ms ease;
   }
 
   .chat-panel__meta-button:hover {
-    background: rgba(252, 252, 252, 0.06);
-    color: rgba(252, 252, 252, 0.7);
-  }
-
-  /* Onboarding */
-  .chat-onboarding__label {
-    color: rgba(252, 252, 252, 0.55);
-  }
-
-  .chat-onboarding__input,
-  .chat-composer__input {
-    border: 1px solid rgba(252, 252, 252, 0.12);
-    background: rgba(252, 252, 252, 0.05);
-    color: #fcfcfc;
-  }
-
-  .chat-onboarding__input::placeholder,
-  .chat-composer__input::placeholder {
-    color: rgba(252, 252, 252, 0.30);
-  }
-
-  .chat-onboarding__input:focus,
-  .chat-composer__input:focus {
-    border-color: rgba(252, 252, 252, 0.28);
     background: rgba(252, 252, 252, 0.08);
+    color: rgba(252, 252, 252, 0.65);
   }
 
-  .chat-onboarding__submit {
-    border: 1px solid rgba(252, 252, 252, 0.14);
-    background: rgba(252, 252, 252, 0.10);
-    color: #fcfcfc;
+  /* Close button — simple icon, no background */
+  .chat-panel__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(252, 252, 252, 0.4);
+    cursor: pointer;
+    transition: opacity 200ms ease, color 200ms ease;
   }
 
-  .chat-onboarding__submit:hover {
-    background: rgba(252, 252, 252, 0.16);
+  .chat-panel__close:hover {
+    color: rgba(252, 252, 252, 0.85);
+    background: rgba(252, 252, 252, 0.06);
   }
 
-  .chat-onboarding__error,
-  .chat-error {
-    border: 1px solid rgba(252, 252, 252, 0.08);
-    background: rgba(252, 252, 252, 0.03);
-    color: rgba(252, 252, 252, 0.55);
+  /* ── Body ─────────────────────────────────────────────────────────────── */
+  .chat-panel__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
   }
 
-  /* Conversation */
-  .chat-empty__text {
+  /* ── Onboarding ──────────────────────────────────────────────────────── */
+  .chat-onboarding {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .chat-onboarding__form {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .chat-onboarding__label {
+    font-family: 'GeistMono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: rgba(252, 252, 252, 0.40);
   }
 
-  .chat-messages::-webkit-scrollbar-thumb {
-    background: rgba(252, 252, 252, 0.12);
+  .chat-onboarding__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.45rem;
   }
 
-  /* Bubbles */
-  .chat-bubble {
-    border: 1px solid rgba(252, 252, 252, 0.07);
-    color: #fcfcfc;
-  }
-
-  .chat-bubble--user {
-    background: rgba(252, 252, 252, 0.08);
-    color: #fcfcfc;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
-  }
-
-  .chat-bubble--assistant {
-    background: rgba(252, 252, 252, 0.04);
-    color: #fcfcfc;
-  }
-
-  /* Suggestions */
-  .chat-suggestion {
+  .chat-onboarding__input {
+    width: 100%;
+    min-height: 2.4rem;
+    padding: 0.55rem 0.75rem;
     border: 1px solid rgba(252, 252, 252, 0.10);
-    background: rgba(252, 252, 252, 0.04);
-    color: #fcfcfc;
+    border-radius: 12px;
+    background: rgba(252, 252, 252, 0.05);
+    color: rgba(252, 252, 252, 0.9);
+    font-family: 'GeistMono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 200ms ease, background 200ms ease;
   }
 
-  .chat-suggestion:hover {
+  .chat-onboarding__input::placeholder {
+    color: rgba(252, 252, 252, 0.25);
+  }
+
+  .chat-onboarding__input:focus {
     border-color: rgba(252, 252, 252, 0.22);
     background: rgba(252, 252, 252, 0.08);
   }
 
-  /* Typing indicator */
-  .chat-typing {
+  /* Initiar button — glass style (not white-on-dark) */
+  .chat-onboarding__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.4rem;
+    padding: 0 1rem;
+    border: 1px solid rgba(252, 252, 252, 0.12);
+    border-radius: 12px;
+    background: rgba(252, 252, 252, 0.08);
+    color: rgba(252, 252, 252, 0.85);
+    font-family: 'GeistMono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 200ms ease, background 200ms ease;
+    white-space: nowrap;
+  }
+
+  .chat-onboarding__submit:hover {
+    background: rgba(252, 252, 252, 0.13);
+    opacity: 1;
+  }
+
+  .chat-onboarding__error,
+  .chat-error {
+    border: 1px solid rgba(252, 252, 252, 0.06);
+    border-radius: 8px;
+    background: rgba(252, 252, 252, 0.02);
+    padding: 0.5rem 0.65rem;
+    font-family: 'GeistMono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgba(252, 252, 252, 0.45);
+  }
+
+  /* ── Conversation ─────────────────────────────────────────────────────── */
+  .chat-conversation {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .chat-empty__text {
+    font-family: 'GeistMono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: rgba(252, 252, 252, 0.35);
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+
+  .chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-height: 18rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    mask-image: linear-gradient(to bottom, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%);
+  }
+
+  .chat-messages::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(252, 252, 252, 0.10);
+    border-radius: 9999px;
+  }
+
+  /* ── Bubbles ──────────────────────────────────────────────────────────── */
+  .chat-bubble {
+    display: grid;
+    gap: 0.25rem;
+    max-width: 84%;
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
     border: 1px solid rgba(252, 252, 252, 0.07);
-    background: rgba(252, 252, 252, 0.04);
+    color: rgba(252, 252, 252, 0.9);
+  }
+
+  .chat-bubble--user {
+    align-self: flex-end;
+    background: rgba(252, 252, 252, 0.08);
+    border-color: rgba(252, 252, 252, 0.10);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
+  }
+
+  .chat-bubble--assistant {
+    align-self: flex-start;
+    background: rgba(212, 168, 83, 0.06);
+    border-color: rgba(212, 168, 83, 0.10);
+  }
+
+  .chat-bubble__label {
+    font-family: 'GeistMono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(252, 252, 252, 0.35);
+  }
+
+  .chat-bubble__content {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'GeistMono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    /* Override uppercase body style for readability */
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+
+  .chat-bubble--streaming .chat-bubble__content::after {
+    content: '▋';
+    animation: blink-cursor 0.8s step-end infinite;
+    opacity: 0.45;
+    font-size: 0.7rem;
+    margin-left: 1px;
+  }
+
+  /* ── Typing indicator ─────────────────────────────────────────────────── */
+  .chat-typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+    border: 1px solid rgba(212, 168, 83, 0.10);
+    border-radius: 12px;
+    width: fit-content;
+    padding: 0.55rem 0.75rem;
+    background: rgba(212, 168, 83, 0.05);
   }
 
   .chat-typing span {
-    background: rgba(252, 252, 252, 0.35);
+    width: 0.28rem;
+    height: 0.28rem;
+    border-radius: 9999px;
+    background: rgba(252, 252, 252, 0.30);
   }
 
-  /* Footer */
+  /* ── Suggestions ──────────────────────────────────────────────────────── */
+  .chat-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .chat-suggestion {
+    border: 1px solid rgba(252, 252, 252, 0.10);
+    border-radius: 8px;
+    background: rgba(252, 252, 252, 0.04);
+    padding: 0.38rem 0.65rem;
+    font-family: 'GeistMono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(252, 252, 252, 0.65);
+    cursor: pointer;
+    transition: opacity 200ms ease, background 200ms ease, border-color 200ms ease;
+  }
+
+  .chat-suggestion:hover {
+    border-color: rgba(252, 252, 252, 0.18);
+    background: rgba(252, 252, 252, 0.08);
+    opacity: 1;
+  }
+
+  /* ── Footer & Composer ────────────────────────────────────────────────── */
   .chat-panel__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
     border-top: 1px solid rgba(252, 252, 252, 0.06);
   }
 
-  /* Composer submit */
+  .chat-composer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.45rem;
+    align-items: end;
+  }
+
+  .chat-composer__input {
+    width: 100%;
+    min-height: 2.4rem;
+    max-height: 6rem;
+    resize: none;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(252, 252, 252, 0.10);
+    border-radius: 12px;
+    background: rgba(252, 252, 252, 0.05);
+    color: rgba(252, 252, 252, 0.9);
+    font-family: 'GeistMono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 200ms ease, background 200ms ease;
+    /* Override uppercase body */
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+
+  .chat-composer__input::placeholder {
+    color: rgba(252, 252, 252, 0.22);
+  }
+
+  .chat-composer__input:focus {
+    border-color: rgba(252, 252, 252, 0.22);
+    background: rgba(252, 252, 252, 0.08);
+  }
+
+  /* Send button — circular, amber accent */
   .chat-composer__submit {
-    border: 1px solid rgba(252, 252, 252, 0.12);
-    background: rgba(252, 252, 252, 0.10);
-    color: #fcfcfc;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border: 1px solid rgba(212, 168, 83, 0.25);
+    border-radius: 50%;
+    background: rgba(212, 168, 83, 0.14);
+    color: #D4A853;
+    cursor: pointer;
+    transition: opacity 200ms ease, background 200ms ease;
+    flex-shrink: 0;
   }
 
   .chat-composer__submit:hover {
-    background: rgba(252, 252, 252, 0.18);
+    background: rgba(212, 168, 83, 0.22);
+    opacity: 1;
   }
 
-  /* Actions */
+  .chat-composer__submit:disabled {
+    opacity: 0.30;
+    cursor: not-allowed;
+  }
+
+  .chat-composer__submit--loading {
+    opacity: 0.45;
+  }
+
+  .chat-composer__submit svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ── Footer actions (mail, contacto) ─────────────────────────────────── */
+  .chat-panel__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
   .chat-panel__action {
-    color: rgba(252, 252, 252, 0.30);
+    display: inline-flex;
+    align-items: center;
+    font-family: 'GeistMono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(252, 252, 252, 0.28);
+    background: transparent;
+    border: none;
+    padding: 0.2rem 0;
+    cursor: pointer;
+    transition: color 200ms ease;
   }
 
   .chat-panel__action:hover {
-    color: rgba(252, 252, 252, 0.70);
+    color: rgba(252, 252, 252, 0.65);
   }
 
   .chat-panel__action-dot {
-    background: rgba(252, 252, 252, 0.18);
+    width: 2px;
+    height: 2px;
+    border-radius: 9999px;
+    background: rgba(252, 252, 252, 0.15);
   }
 
-  /* Links inside chat */
+  /* ── Links inside chat ────────────────────────────────────────────────── */
   .chat-link {
     color: #D4A853;
-    text-decoration-color: rgba(212, 168, 83, 0.4);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    text-decoration-color: rgba(212, 168, 83, 0.40);
   }
 
   .chat-link:hover {
     text-decoration-color: #D4A853;
+  }
+
+  /* ── Animations ───────────────────────────────────────────────────────── */
+  @keyframes blink-cursor {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0; }
   }
 </style>
 
@@ -775,14 +1121,19 @@ const positionStyle = [
 			}
 		};
 
-		gsap.set(chatTooltip, { autoAlpha: 0, y: 8, pointerEvents: "none" });
+		// ── Initial GSAP states ─────────────────────────────────────────────────
+		// Tooltip: hidden initially, will slide in from the right (x: 8 → 0)
+		gsap.set(chatTooltip, { autoAlpha: 0, x: 8, pointerEvents: "none" });
+
+		// Panel: grows from bottom-right corner
 		gsap.set(chatPanel, {
 			autoAlpha: 0,
-			y: 18,
-			scale: 0.96,
+			y: 16,
+			scale: 0.94,
 			transformOrigin: "bottom right",
 			pointerEvents: "none",
 		});
+
 		gsap.from(chatTrigger, {
 			autoAlpha: 0,
 			y: 20,
@@ -849,11 +1200,11 @@ const positionStyle = [
 				return;
 			}
 
-			gsap.to(chatTooltip, { autoAlpha: 1, y: 0, ...motionDefaults });
+			gsap.to(chatTooltip, { autoAlpha: 1, x: 0, ...motionDefaults });
 		};
 
 		const hideTooltip = () => {
-			gsap.to(chatTooltip, { autoAlpha: 0, y: 8, ...motionDefaults });
+			gsap.to(chatTooltip, { autoAlpha: 0, x: 8, ...motionDefaults });
 		};
 
 		const openChat = () => {
@@ -887,7 +1238,7 @@ const positionStyle = [
 			gsap.to(chatPanel, {
 				autoAlpha: 0,
 				y: 10,
-				scale: 0.97,
+				scale: 0.96,
 				pointerEvents: "none",
 				duration: reduceMotion ? 0 : 0.22,
 				ease: "power2.in",

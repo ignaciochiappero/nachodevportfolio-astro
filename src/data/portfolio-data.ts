@@ -72,11 +72,11 @@ export interface PersonalInfo {
 
 export const personalInfo: PersonalInfo = {
   name: "Ignacio Chiappero",
-  role: "Creative Frontend & AI Developer",
+  role: "Full Stack & AI Developer",
   location: "Santa Fe, Argentina",
   email: "hola@nachodev.com",
   phone: "+54 342 409-4061",
-  tagline: "Quiet interfaces with a strong point of view.",
+  tagline: "Desarrollo robusto y creativo.",
   availableForWork: true,
 };
 
@@ -84,7 +84,7 @@ export const personalInfo: PersonalInfo = {
 
 export const aboutText: string[] = [
   "Soy Nacho, desarrollador frontend y de IA con foco en interfaces que dicen algo — con criterio, no con ruido. Combino diseño y código para construir productos digitales que tienen carácter.",
-  "Trabajo con el stack moderno (Astro, Next.js, TypeScript, Tailwind) y estoy especializado en integración de IA generativa, automatización con n8n y despliegue de agentes autónomos. Llevo más de una década en diseño gráfico, lo que le da a cada proyecto una base visual sólida.",
+  "Trabajo con varias tecnologías de vanguardia para lograr combinar estilo y performance, y estoy especializado en integración de IA generativa, automatización con n8n, despliegue de agentes autónomos, así como también desarrollo y despliegue punta a punta de todo tipo de software a medida. Además, llevo más de una década en diseño de interfaces y cuento con un grado en honores de artes gráficas, lo que le da a cada proyecto una base visual sólida.",
   "Me interesa construir herramientas que funcionen bien y que se vean bien. No como opuestos — como lo mismo.",
 ];
 
@@ -149,39 +149,48 @@ export const careerTimeline: CareerEntry[] = [
     role: "IA Engineer & Automation Specialist",
     period: "Presente",
     description:
-      "Actualmente enfocado en la vanguardia de la IA Generativa y la eficiencia operativa. Desarrollo soluciones avanzadas de automatización utilizando n8n, integración de MCP Servers (Model Context Protocol) y el despliegue de agentes inteligentes a medida. Mi formación actual se centra en Machine Learning avanzado y el diseño de arquitecturas que permiten a los modelos de lenguaje interactuar con herramientas externas de forma autónoma para resolver flujos de negocio complejos.",
+      "Actualmente enfocado en la vanguardia de la IA Generativa y la eficiencia operativa. Desarrollo soluciones avanzadas de automatización utilizando n8n, servidores a medida basados en Go, Express y NestJs, integración de MCP Servers en aplicaciones web y el despliegue y desarrollo de agentes para CRMs. Mi formación actual se centra en Machine Learning, AI Generation y el diseño de arquitecturas que permiten a los modelos de lenguaje interactuar con herramientas externas de forma autónoma para resolver flujos de negocio complejos.",
   },
   {
     id: 2,
     title: "Desarrollo de Software a Escala Corporativa",
     role: "Full Stack Engineer",
-    period: "2024 - 2025",
+    period: "2024 - Actualidad",
     description:
-      "Arquitecto y desarrollador de soluciones para marcas líderes globales como Puma, Puma Energy, Shell y Texaco, participando en la creación de sistemas críticos de fidelización y plataformas de formación de alto tráfico. Asimismo, contribuí al ecosistema digital de la Provincia de Santa Fe, integrando trámites gubernamentales en una plataforma unificada. Stack principal: Next.js, GraphQL, NestJS, y microservicios, asegurando escalabilidad y performance en entornos de alta demanda.",
+      "Arquitecto y desarrollador de soluciones punta a punta para marcas líderes globales como Puma, Puma Energy, Shell y Texaco, participando en la creación de sistemas críticos de fidelización y plataformas de formación de alto tráfico. Asimismo, contribuí al ecosistema digital de la Provincia de Santa Fe, integrando trámites gubernamentales en una plataforma unificada. Tecnologías y entornos: Next.js, GraphQL, NestJS, React, Servicio de cloud de AWS, entre otros, asegurando escalabilidad y performance en entornos de alta demanda.",
   },
   {
     id: 3,
     title: "Ingeniería en Sistemas e Inteligencia Artificial",
     role: "Formación Académica y Fundamentos",
-    period: "2022 - 2023",
+    period: "2022 - 2024",
     description:
-      "Profundización en las bases científicas de la computación. Durante este periodo, consolidé conocimientos en arquitecturas de sistemas, algoritmos avanzados en C++ y Java, y análisis de datos. Con el auge de la Inteligencia Artificial, orienté mi formación hacia el aprendizaje autónomo (Machine Learning), robótica aplicada y el procesamiento de grandes volúmenes de datos para modelos de regresión y clasificación.",
+      "Profundización en las bases científicas de la computación. Durante este periodo, consolidé conocimientos en arquitecturas de sistemas, algoritmos avanzados en C++ y Java, y análisis de datos. Con el auge de la Inteligencia Artificial, orienté mi formación hacia el aprendizaje autónomo (Machine Learning), robótica aplicada y el procesamiento de grandes volúmenes de datos para modelos de regresión y clasificación. Primeros trabajos freelance para pymes orientadas a soluciones de software de gestión y stock a medida.",
   },
   {
     id: 4,
     title: "Arquitectura de Hardware y Programación de Sistemas",
     role: "Robótica y Computación Física",
-    period: "2021",
+    period: "2021 - Actualidad",
     description:
-      "Investigación y desarrollo en el área de hardware-software integration. Trabajé en el diseño de sistemas complejos utilizando microcontroladores (Arduino/ESP32) y sensores avanzados, aplicando lógica de programación de bajo nivel para resolver problemas de automatización física y robótica educativa de alto nivel técnico.",
+      "Luego de graduarme, decidí aplicar todo mi conocimiento visual para llevarlo al siguiente nivel: conectar lo técnico con lo artístico, a través de creación de sistemas ciber físicos, dando clases como Profesor Titular de Tecnología, Robótica y Programación en varias instituciones, y estudiando y enseñando las bases de la ingeniería de software y sitemas de bajo nivel. Desarrollé proyectos para pequeñas empresas orientadas al prototipado de electrónica automatizada para el hogar.",
   },
   {
     id: 5,
-    title: "Primeros Pasos en Ingeniería de Software",
-    role: "Desarrollo Autodidacta",
-    period: "2013 - 2020",
+    title: "Grado en Diseño y Artes Visuales",
+    role: "Profesorado de Tecnología y Artes Visuales",
+    period: "2017 - 2021",
     description:
-      "Inicio del camino técnico mediante el estudio de algoritmos y estructuras de datos. Lo que comenzó como una curiosidad por la lógica de programación y el diseño de sistemas, se transformó rápidamente en una carrera profesional enfocada en construir herramientas digitales que resuelven problemas reales a través del código.",
+      "Decido inscribirme a la carrera de Artes Gráficas, Visuales y Tecnología, para perfeccionar y especializarme en agudizar mi percepción estética y desarrollar el apartado creativo, lo que me llevó a incursionar y perfeccionarme todavía más en el dominio del branding e impacto de marketing.",
+  },
+
+  {
+    id: 6,
+    title: "Primeros Pasos en Desarrollo de interfaces",
+    role: "Desarrollo Autodidacta",
+    period: "2013 - 2017",
+    description:
+      "Inicio de mi camino como diseñador web a través de interfaces gráficas como Figma, Wix, WordPress, explorando en desarrollo de branding a medida y marketing digital.",
   },
 ];
 
@@ -190,20 +199,20 @@ export const careerTimeline: CareerEntry[] = [
 export const statistics: Statistic[] = [
   {
     id: 0,
-    value: 3,
-    label: "Años como programador",
+    value: 5,
+    label: "Años de experiencia de desarrollo de softare punta a punta",
     suffix: "+",
   },
   {
     id: 1,
     value: 10,
-    label: "Años de experiencia en diseño gráfico",
+    label: "Años de experiencia en desarrollo de interfaces",
     suffix: "+",
   },
   {
     id: 2,
     value: 15,
-    label: "Proyectos",
+    label: "Tecnologías de integración agéntica y desarrollo con AI",
     suffix: "+",
   },
   {
@@ -291,7 +300,14 @@ export const projects: Project[] = [
     year: 2024,
     category: "brand",
     featured: false,
-    technologies: ["nextjs", "tailwindcss", "swiper", "javascript", "react", "vercel"],
+    technologies: [
+      "nextjs",
+      "tailwindcss",
+      "swiper",
+      "javascript",
+      "react",
+      "vercel",
+    ],
     highlights: [
       "Diseño a medida para marca personal",
       "Contenido visual priorizado",

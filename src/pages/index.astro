@@ -41,9 +41,9 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 		<meta name="generator" content={Astro.generator} />
 		<meta
 			name="description"
-			content="Creative frontend portfolio inspired by the editorial rhythm and minimalist structure of unshift.jp."
+			content="Nacho´s Dev Full Stack portfolio with a AI chat included"
 		/>
-		<title>Nacho Dev | Creative Frontend Portfolio</title>
+		<title>Nacho Dev | Portfolio</title>
 	</head>
 	<body class="selection:bg-white/10 selection:text-white">
 		<div class="site-shell">
@@ -73,7 +73,7 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 		<a href="#contact" class="pill-nav__link" data-section="contact">Contact</a>
 			</nav>
 
-			<div class="section-label left-5 hidden md:block">Portfolio / 2026</div>
+
 			<div class="section-label right-5 hidden md:block">Scroll to explore</div>
 
 			<main id="top" class="relative z-10">
@@ -82,16 +82,10 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 					<div class="grid w-full gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.7fr)] lg:items-end lg:gap-10">
 						<div class="max-w-5xl">
 
-							<!-- Availability badge -->
-							{personalInfo.availableForWork && (
-								<div class="availability-badge">
-									<span class="availability-dot"></span>
-									<span>Disponible para proyectos</span>
-								</div>
-							)}
+		
 
 							<p class="mb-6 font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40 md:mb-8">
-								{personalInfo.role}
+								{personalInfo.name}  &mdash; {personalInfo.role}
 							</p>
 
 							<h1 class="max-w-[12ch] text-[clamp(3.6rem,10vw,8.75rem)] font-light uppercase leading-[0.88] tracking-[-0.03em] text-white">
@@ -99,7 +93,7 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 							</h1>
 
 							<p class="mt-5 font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40">
-								{personalInfo.role} &mdash; {personalInfo.location}
+								 {personalInfo.location}
 							</p>
 
 							<div class="mt-10 flex flex-col gap-4 sm:flex-row md:mt-12">
@@ -144,17 +138,17 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 											{projectCategoryLabels[project.category] ?? project.category}
 										</small>
 									</div>
-									<a
-										href={project.urlDemo || project.urlGithub || '#'}
-										class="project-card__link"
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										<span>View Project</span>
-										<svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-											<path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 11H8V13H12V16L16 12L12 8V11Z"></path>
-										</svg>
-									</a>
+								<a
+									href={project.urlDemo || project.urlGithub || '#'}
+									class="project-card__link"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<span class="project-card__link-text">View Project</span>
+									<svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+										<path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 11H8V13H12V16L16 12L12 8V11Z"></path>
+									</svg>
+								</a>
 								</div>
 							</div>
 						</div>
