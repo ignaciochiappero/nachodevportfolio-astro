@@ -161,6 +161,9 @@ const positionStyle = [
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    /* Shrink-wrap to the sphere button only — no extra hitbox */
+    width: fit-content;
+    align-self: flex-end;
   }
 
   /* ── Tooltip: float to the LEFT of the sphere ─────────────────────────── */
@@ -209,6 +212,35 @@ const positionStyle = [
   /* The old line element is gone — hide any leftover */
   .chat-tooltip__line {
     display: none;
+  }
+
+  /* ── Sphere trigger button — tight hitbox matching visual sphere size ── */
+  .chat-trigger {
+    /* Size matches the visual Three.js sphere closely */
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .chat-trigger__inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chat-trigger__canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   /* ── Sphere trigger shadow — keep subtle ─────────────────────────────── */
@@ -340,8 +372,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: rgba(252, 252, 252, 0.40);
   }
 
@@ -534,8 +566,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: rgba(252, 252, 252, 0.65);
     cursor: pointer;
     transition: opacity 200ms ease, background 200ms ease, border-color 200ms ease;
@@ -1174,8 +1206,8 @@ const positionStyle = [
 
 		const resizeFigure = () => {
 			const bounds = figureCanvas.getBoundingClientRect();
-			const width = Math.max(120, Math.round(bounds.width));
-			const height = Math.max(120, Math.round(bounds.height));
+			const width = Math.max(64, Math.round(bounds.width));
+			const height = Math.max(64, Math.round(bounds.height));
 			figureCamera.aspect = width / height;
 			figureCamera.updateProjectionMatrix();
 			fatWireframeMaterial.resolution.set(width, height);
@@ -1284,7 +1316,7 @@ const positionStyle = [
 
 				// Auto-dismiss after 4 seconds, but only if the user isn't hovering
 				autoDismissTimer = setTimeout(() => {
-					if (!root.matches(":hover")) {
+					if (!chatTrigger.matches(":hover") && !chatTrigger.matches(":focus-visible")) {
 						hideTooltip();
 					}
 				}, 4000);
@@ -1388,8 +1420,8 @@ const positionStyle = [
 			});
 		}
 
-		root.addEventListener("pointerenter", handleRootPointerEnter);
-		root.addEventListener("pointerleave", handleRootPointerLeave);
+		chatTrigger.addEventListener("pointerenter", handleRootPointerEnter);
+		chatTrigger.addEventListener("pointerleave", handleRootPointerLeave);
 		chatTrigger.addEventListener("focus", showTooltip);
 		chatTrigger.addEventListener("blur", hideTooltip);
 		chatTrigger.addEventListener("click", toggleChatPanel);
@@ -1398,8 +1430,8 @@ const positionStyle = [
 		window.addEventListener("keydown", handleEscape);
 		window.addEventListener("resize", handleResize);
 
-		cleanups.push(() => root.removeEventListener("pointerenter", handleRootPointerEnter));
-		cleanups.push(() => root.removeEventListener("pointerleave", handleRootPointerLeave));
+		cleanups.push(() => chatTrigger.removeEventListener("pointerenter", handleRootPointerEnter));
+		cleanups.push(() => chatTrigger.removeEventListener("pointerleave", handleRootPointerLeave));
 		cleanups.push(() => chatTrigger.removeEventListener("focus", showTooltip));
 		cleanups.push(() => chatTrigger.removeEventListener("blur", hideTooltip));
 		cleanups.push(() => chatTrigger.removeEventListener("click", toggleChatPanel));

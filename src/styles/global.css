@@ -276,6 +276,13 @@ h3,
   -webkit-backdrop-filter: blur(24px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   overflow: hidden;
+  /* Reset body-level uppercase so all readable text inside the chat panel
+     flows naturally. Individual UI micro-labels (status, bubble labels,
+     suggestion chips, footer actions) override this back to uppercase where
+     intentional. */
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 300;
 }
 
 .chat-panel__header {
@@ -401,6 +408,9 @@ h3,
   font-size: 0.82rem;
   line-height: 1.5;
   outline: none;
+  /* Inputs must never be uppercase — user types natural text */
+  text-transform: none;
+  letter-spacing: normal;
   transition:
     border-color 160ms ease,
     background-color 160ms ease;
@@ -471,6 +481,8 @@ h3,
   font-size: 0.82rem;
   line-height: 1.55;
   color: var(--muted);
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .chat-messages {
@@ -530,6 +542,9 @@ h3,
   font-family: 'GeistMono', monospace;
   font-size: 0.85rem;
   line-height: 1.6;
+  /* Readable body text — must not be uppercase */
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .chat-bubble--streaming .chat-bubble__content::after {
@@ -564,8 +579,8 @@ h3,
   font-family: 'GeistMono', monospace;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--foreground);
   cursor: pointer;
   transition:
