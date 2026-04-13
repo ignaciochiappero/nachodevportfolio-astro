@@ -295,8 +295,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 9px;
     font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: rgba(252, 252, 252, 0.30);
     margin-top: 0;
   }
@@ -316,8 +316,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: rgba(252, 252, 252, 0.35);
     cursor: pointer;
     transition: opacity 200ms ease, background 200ms ease;
@@ -421,8 +421,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     cursor: pointer;
     transition: opacity 200ms ease, background 200ms ease;
     white-space: nowrap;
@@ -508,8 +508,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: rgba(252, 252, 252, 0.35);
   }
 
@@ -675,8 +675,8 @@ const positionStyle = [
     font-family: 'GeistMono', monospace;
     font-size: 9px;
     font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: rgba(252, 252, 252, 0.28);
     background: transparent;
     border: none;
@@ -716,10 +716,6 @@ const positionStyle = [
 </style>
 
 <script>
-	import * as THREE from "three";
-	import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
-	import { Wireframe } from "three/examples/jsm/lines/Wireframe.js";
-	import { WireframeGeometry2 } from "three/examples/jsm/lines/WireframeGeometry2.js";
 	import { gsap } from "gsap";
 	import { CHAT_LIMITS } from "../lib/chat-config";
 	import { isValidName, sanitizeName } from "../lib/bad-words-filter";
@@ -889,8 +885,6 @@ const positionStyle = [
 		const isMobile = window.innerWidth < 768;
 		const cleanups: Array<() => void> = [];
 		let isChatOpen = false;
-		let currentRotationSpeed = 1;
-		let targetRotationSpeed = 1;
 		let userName: string | null = null;
 		let messages: ChatMessage[] = [];
 		let messageCount = 0;
@@ -900,10 +894,6 @@ const positionStyle = [
 		const motionDefaults = reduceMotion
 			? { duration: 0 }
 			: { duration: 0.42, ease: "power2.out" };
-		const baseRotationSpeed = reduceMotion ? 0 : 1.75;
-		const hoverRotationSpeed = reduceMotion ? 0 : 0.3;
-		currentRotationSpeed = baseRotationSpeed;
-		targetRotationSpeed = baseRotationSpeed;
 
 		const updateStatus = () => {
 			const remaining = Math.max(0, CHAT_LIMITS.maxMessagesPerSession - messageCount);
@@ -1173,59 +1163,165 @@ const positionStyle = [
 			...motionDefaults,
 		});
 
-		const figureRenderer = new THREE.WebGLRenderer({
-			canvas: figureCanvas,
-			alpha: true,
-			antialias: true,
-			powerPreference: "high-performance",
-		});
-		figureRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-		figureRenderer.outputColorSpace = THREE.SRGBColorSpace;
+		// ── Mini Particle Logo (Canvas 2D) ────────────────────────────────
+		// Load Logo2.png, sample pixels, render as animated 2D particles
 
-		const figureScene = new THREE.Scene();
-		const figureCamera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-		figureCamera.position.set(0, 0, 7.4);
-
-		const figureGroup = new THREE.Group();
-		figureScene.add(figureGroup);
-
-		const sphereGeometry = new THREE.IcosahedronGeometry(1.9, 0);
-		const fatWireframeGeometry = new WireframeGeometry2(sphereGeometry);
-	const fatWireframeMaterial = new LineMaterial({
-		color: 0x888888,
-		linewidth: isMobile ? 2.8 : 3.6,
-			dashed: false,
-			transparent: true,
-			opacity: 0.94,
-			worldUnits: false,
-		});
-		const sphereLines = new Wireframe(fatWireframeGeometry, fatWireframeMaterial);
-		sphereLines.computeLineDistances();
-		figureGroup.scale.setScalar(0.94);
-		figureGroup.add(sphereLines);
-
-		const resizeFigure = () => {
-			const bounds = figureCanvas.getBoundingClientRect();
-			const width = Math.max(64, Math.round(bounds.width));
-			const height = Math.max(64, Math.round(bounds.height));
-			figureCamera.aspect = width / height;
-			figureCamera.updateProjectionMatrix();
-			fatWireframeMaterial.resolution.set(width, height);
-			figureRenderer.setSize(width, height, false);
+		type MiniParticle = {
+			ox: number;  // original X (0-1 normalized)
+			oy: number;  // original Y (0-1 normalized)
+			x: number;   // current X
+			y: number;   // current Y
+			r: number;   // random seed for noise offset
+			size: number; // particle radius
 		};
 
-		resizeFigure();
+		const miniParticles: MiniParticle[] = [];
+		let miniAnimFrameId = 0;
+		let hoverProgress = 0;
+		let hoverTarget = 0;
 
-		const resizeObserver = new ResizeObserver(() => {
-			resizeFigure();
-		});
-		resizeObserver.observe(root);
-		resizeObserver.observe(figureCanvas);
-		cleanups.push(() => resizeObserver.disconnect());
+		function loadMiniParticleLogo() {
+			const img = new Image();
+			img.crossOrigin = "anonymous";
+			img.src = "/Logo2.png";
 
-		const handleResize = () => {
-			resizeFigure();
-		};
+			img.onload = () => {
+				const sampleSize = 80; // Small canvas for sampling (enough for 72px display)
+				const offscreen = document.createElement("canvas");
+				offscreen.width = sampleSize;
+				offscreen.height = sampleSize;
+				const offCtx = offscreen.getContext("2d");
+				if (!offCtx) return;
+
+				offCtx.drawImage(img, 0, 0, sampleSize, sampleSize);
+				const imageData = offCtx.getImageData(0, 0, sampleSize, sampleSize);
+				const pixels = imageData.data;
+
+				const step = 3; // pixel skip — gives ~200-500 particles from 80x80
+
+				for (let y = 0; y < sampleSize; y += step) {
+					for (let x = 0; x < sampleSize; x += step) {
+						const idx = (y * sampleSize + x) * 4;
+						const alpha = pixels[idx + 3];
+
+						if (alpha > 128) {
+							const nx = x / sampleSize; // 0-1
+							const ny = y / sampleSize; // 0-1
+							miniParticles.push({
+								ox: nx,
+								oy: ny,
+								x: nx,
+								y: ny,
+								r: Math.random(),
+								size: 0.6 + Math.random() * 0.8, // 0.6-1.4px radius
+							});
+						}
+					}
+				}
+
+				console.log(`[MiniParticleLogo] Created ${miniParticles.length} particles`);
+
+				// Start the animation after particles are loaded
+				if (!reduceMotion) {
+					startMiniParticleAnimation();
+				} else {
+					drawMiniParticles(0); // Static single frame
+				}
+			};
+
+			img.onerror = () => {
+				console.warn("[MiniParticleLogo] Failed to load Logo2.png");
+			};
+		}
+
+		function drawMiniParticles(time: number) {
+			const canvas = figureCanvas;
+			const ctx = canvas.getContext("2d");
+			if (!ctx || miniParticles.length === 0) return;
+
+			const dpr = Math.min(window.devicePixelRatio, 2);
+			const displayWidth = canvas.clientWidth;
+			const displayHeight = canvas.clientHeight;
+
+			// Resize canvas buffer if needed
+			if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
+				canvas.width = displayWidth * dpr;
+				canvas.height = displayHeight * dpr;
+				ctx.scale(dpr, dpr);
+			}
+
+			ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+			// Padding so particles don't clip at edges
+			const padding = 6;
+			const drawWidth = displayWidth - padding * 2;
+			const drawHeight = displayHeight - padding * 2;
+
+			const t = time * 0.001; // seconds
+
+			// Smooth lerp for hover progress (0.08 = ~12 frames to settle)
+			hoverProgress += (hoverTarget - hoverProgress) * 0.08;
+
+			// Center of the logo (normalized 0-1)
+			const centerX = 0.5;
+			const centerY = 0.5;
+
+			// Explosion strength - how far particles move outward on hover
+			const explosionStrength = 0.15;
+
+			for (const p of miniParticles) {
+				// Subtle breathing with sine waves (approximating simplex noise)
+				const breathX = Math.sin(t * 0.5 + p.r * 6.28) * 0.008;
+				const breathY = Math.cos(t * 0.4 + p.r * 6.28 + 1.5) * 0.008;
+				const floatY = Math.sin(t * 0.3 + p.r * 3.14) * 0.005;
+
+				// Calculate vector from center to particle
+				const dirX = p.ox - centerX;
+				const dirY = p.oy - centerY;
+
+				// Normalize and apply explosion displacement
+				const dist = Math.sqrt(dirX * dirX + dirY * dirY) || 0.001;
+				const normX = dirX / dist;
+				const normY = dirY / dist;
+
+				// Explosion displacement scaled by hover progress
+				// Inner particles move less, outer particles move more
+				const displacement = hoverProgress * explosionStrength * (0.5 + dist * 0.5);
+
+				p.x = p.ox + breathX + normX * displacement;
+				p.y = p.oy + breathY + floatY + normY * displacement;
+
+				const screenX = padding + p.x * drawWidth;
+				const screenY = padding + p.y * drawHeight;
+
+				// Base alpha with breathing
+				const baseAlpha = 0.35 + Math.sin(t * 0.6 + p.r * 6.28) * 0.15;
+				// Increase alpha on hover (glow effect)
+				const alpha = Math.min(1, baseAlpha * (1 + hoverProgress * 0.8));
+
+				// Interpolate color from white to amber on hover
+				// White: 252, 252, 252 | Amber: 212, 168, 83 (#D4A853)
+				const r = 252 - hoverProgress * 40;  // 252 -> 212
+				const g = 252 - hoverProgress * 84;  // 252 -> 168
+				const b = 252 - hoverProgress * 169; // 252 -> 83
+
+				// Slightly increase size on hover
+				const size = p.size * (1 + hoverProgress * 0.3);
+
+				ctx.beginPath();
+				ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
+				ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
+				ctx.fill();
+			}
+		}
+
+		function startMiniParticleAnimation() {
+			const loop = (time: number) => {
+				drawMiniParticles(time);
+				miniAnimFrameId = requestAnimationFrame(loop);
+			};
+			miniAnimFrameId = requestAnimationFrame(loop);
+		}
 
 		const showTooltip = () => {
 			if (isChatOpen) {
@@ -1327,24 +1423,14 @@ const positionStyle = [
 			// Cancel pending auto-tooltip timers so hover takes full control
 			cancelAutoTooltip();
 			showTooltip();
-			targetRotationSpeed = hoverRotationSpeed;
+			hoverTarget = 1;
 			gsap.to(chatTrigger, { scale: 0.8, ...motionDefaults });
-			gsap.to(fatWireframeMaterial, {
-				linewidth: isMobile ? 3.2 : 4.2,
-				opacity: 1,
-				...motionDefaults,
-			});
 		};
 
 		const handleRootPointerLeave = () => {
 			hideTooltip();
-			targetRotationSpeed = baseRotationSpeed;
+			hoverTarget = 0;
 			gsap.to(chatTrigger, { scale: 1, ...motionDefaults });
-			gsap.to(fatWireframeMaterial, {
-				linewidth: isMobile ? 2.8 : 3.6,
-				opacity: 1,
-				...motionDefaults,
-			});
 		};
 
 		const handleDocumentPointerDown = (event: PointerEvent) => {
@@ -1428,7 +1514,6 @@ const positionStyle = [
 		chatClose.addEventListener("click", closeChatPanel);
 		document.addEventListener("pointerdown", handleDocumentPointerDown);
 		window.addEventListener("keydown", handleEscape);
-		window.addEventListener("resize", handleResize);
 
 		cleanups.push(() => chatTrigger.removeEventListener("pointerenter", handleRootPointerEnter));
 		cleanups.push(() => chatTrigger.removeEventListener("pointerleave", handleRootPointerLeave));
@@ -1438,42 +1523,17 @@ const positionStyle = [
 		cleanups.push(() => chatClose.removeEventListener("click", closeChatPanel));
 		cleanups.push(() => document.removeEventListener("pointerdown", handleDocumentPointerDown));
 		cleanups.push(() => window.removeEventListener("keydown", handleEscape));
-		cleanups.push(() => window.removeEventListener("resize", handleResize));
 
 		loadPersistedState();
 		setCurrentSectionTracking();
 		renderUiState();
 		scheduleAutoTooltip();
-
-		const clock = new THREE.Clock();
-		let frameId = 0;
-
-		const renderFrame = () => {
-			const elapsed = clock.getElapsedTime();
-			currentRotationSpeed += (targetRotationSpeed - currentRotationSpeed) * 0.08;
-
-			sphereLines.rotation.x = 0.75 + elapsed * 0.12 * currentRotationSpeed;
-			sphereLines.rotation.y = 0.6 + elapsed * 0.18 * currentRotationSpeed;
-			sphereLines.rotation.z = Math.sin(elapsed * 0.45) * 0.08;
-			figureGroup.rotation.z = Math.sin(elapsed * 0.45) * 0.05;
-			figureGroup.position.y = Math.sin(elapsed * 0.9) * 0.16;
-			figureRenderer.render(figureScene, figureCamera);
-
-			if (!reduceMotion) {
-				frameId = window.requestAnimationFrame(renderFrame);
-			}
-		};
-
-		renderFrame();
+		loadMiniParticleLogo();
 
 		const cleanup = () => {
-			window.cancelAnimationFrame(frameId);
+			cancelAnimationFrame(miniAnimFrameId);
 			cancelAutoTooltip();
 			cleanups.forEach((dispose) => dispose());
-			sphereGeometry.dispose();
-			fatWireframeGeometry.dispose();
-			fatWireframeMaterial.dispose();
-			figureRenderer.dispose();
 		};
 
 		window.addEventListener("pagehide", cleanup, { once: true });

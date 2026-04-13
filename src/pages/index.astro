@@ -1,5 +1,6 @@
 ---
 import TechScene from "../components/TechScene.astro";
+import ParticleLogo from "../components/ParticleLogo.astro";
 import "../styles/global.css";
 import {
 	personalInfo,
@@ -77,9 +78,10 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 			<div class="section-label right-5 hidden md:block">Scroll to explore</div>
 
 			<main id="top" class="relative z-10">
-				<!-- ── HERO ──────────────────────────────────────────────────────── -->
-				<section class="mx-auto flex min-h-dvh max-w-400 items-end px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-36">
-					<div class="grid w-full gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.7fr)] lg:items-end lg:gap-10">
+			<!-- ── HERO ──────────────────────────────────────────────────────── -->
+			<section class="hero-section mx-auto flex min-h-dvh max-w-400 items-end px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-36">
+				<ParticleLogo />
+				<div class="hero-content grid w-full gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.7fr)] lg:items-end lg:gap-10">
 						<div class="max-w-5xl">
 
 		
@@ -113,8 +115,7 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 					<div>
 						<p class="font-[GeistMono,monospace] text-[10px] uppercase tracking-[0.2em] text-white/40">Selected works</p>
 						<h2 class="mt-3 max-w-[10ch] text-[clamp(2.8rem,6vw,5.5rem)] font-light uppercase leading-[0.9] tracking-[-0.03em] text-white">
-							A focused list, not a gallery.
-						</h2>
+Mi trabajo						</h2>
 					</div>
 					<p class="max-w-md text-sm leading-7 text-white/40 md:text-base normal-case tracking-normal">
 						Proyectos reales — plataformas, e-commerce, herramientas de IA y experimentos de computer vision.
@@ -278,6 +279,17 @@ const youtubeLink = socialNetworks.find((s) => s.name === "YouTube");
 </html>
 
 <style>
+  /* ── Hero section — positioning context for the constellation strip ─────── */
+
+  .hero-section {
+    position: relative;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
   /* ── Pill Navigation ─────────────────────────────────────────────────────── */
 
   .pill-nav {

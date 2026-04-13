@@ -1,0 +1,375 @@
+---
+// ParticleLogo.astro — Vanilla Three.js Particle Cloud from Logo2.png
+// Self-contained component with its own WebGL context
+---
+
+<canvas class="particle-logo-canvas" data-particle-logo></canvas>
+
+<script>
+	import * as THREE from "three";
+
+	const canvasEl = document.querySelector("[data-particle-logo]");
+
+	if (canvasEl instanceof HTMLCanvasElement) {
+		// ── Configuration ─────────────────────────────────────────────────────────
+		const CONFIG = {
+			sampleSize: 300,           // Canvas resolution for sampling
+			step: window.innerWidth < 768 ? 4 : 3,  // Pixel skip (higher on mobile)
+			scale: 4.0,                // World-space size
+			depth: 0.3,                // Z-axis volume thickness
+			alphaThreshold: 128,       // Only sample pixels with alpha > 128
+			uColor: new THREE.Color(0xfcfcfc),
+			uMouseRadius: 1.2,
+			uMouseStrength: 0.7,
+		};
+
+		const cleanups: Array<() => void> = [];
+
+		// ── Reduced Motion Check ──────────────────────────────────────────────────
+		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const reduceMotion = mediaQuery.matches;
+
+		// ── Renderer ──────────────────────────────────────────────────────────────
+		const renderer = new THREE.WebGLRenderer({
+			canvas: canvasEl,
+			alpha: true,
+			antialias: false,
+			powerPreference: "low-power",
+		});
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+		// ── Scene & Camera ────────────────────────────────────────────────────────
+		const scene = new THREE.Scene();
+		const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+		camera.position.z = 5;
+
+		// ── Simplex Noise GLSL ────────────────────────────────────────────────────
+		const simplexNoiseGLSL = /* glsl */ `
+			vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+			vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+			vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+			vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+			float snoise(vec3 v) {
+				const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+				const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+				vec3 i = floor(v + dot(v, C.yyy));
+				vec3 x0 = v - i + dot(i, C.xxx);
+				vec3 g = step(x0.yzx, x0.xyz);
+				vec3 l = 1.0 - g;
+				vec3 i1 = min(g.xyz, l.zxy);
+				vec3 i2 = max(g.xyz, l.zxy);
+				vec3 x1 = x0 - i1 + C.xxx;
+				vec3 x2 = x0 - i2 + C.yyy;
+				vec3 x3 = x0 - D.yyy;
+				i = mod289(i);
+				vec4 p = permute(permute(permute(
+					i.z + vec4(0.0, i1.z, i2.z, 1.0))
+					+ i.y + vec4(0.0, i1.y, i2.y, 1.0))
+					+ i.x + vec4(0.0, i1.x, i2.x, 1.0));
+				float n_ = 0.142857142857;
+				vec3 ns = n_ * D.wyz - D.xzx;
+				vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+				vec4 x_ = floor(j * ns.z);
+				vec4 y_ = floor(j - 7.0 * x_);
+				vec4 x = x_ * ns.x + ns.yyyy;
+				vec4 y = y_ * ns.x + ns.yyyy;
+				vec4 h = 1.0 - abs(x) - abs(y);
+				vec4 b0 = vec4(x.xy, y.xy);
+				vec4 b1 = vec4(x.zw, y.zw);
+				vec4 s0 = floor(b0) * 2.0 + 1.0;
+				vec4 s1 = floor(b1) * 2.0 + 1.0;
+				vec4 sh = -step(h, vec4(0.0));
+				vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+				vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+				vec3 p0 = vec3(a0.xy, h.x);
+				vec3 p1 = vec3(a0.zw, h.y);
+				vec3 p2 = vec3(a1.xy, h.z);
+				vec3 p3 = vec3(a1.zw, h.w);
+				vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+				p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+				vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+				m = m * m;
+				return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+			}
+		`;
+
+		// ── Vertex Shader ─────────────────────────────────────────────────────────
+		const vertexShader = /* glsl */ `
+			uniform float uTime;
+			uniform vec3 uMouse;
+			uniform float uMouseRadius;
+			uniform float uMouseStrength;
+
+			attribute float aRandom;
+			attribute vec3 aOriginalPosition;
+
+			varying float vAlpha;
+
+			${simplexNoiseGLSL}
+
+			void main() {
+				vec3 pos = aOriginalPosition;
+
+				// 1. Idle breathing (noise displacement)
+				float noiseVal = snoise(pos * 1.2 + uTime * 0.2 + aRandom * 10.0);
+				pos.x += noiseVal * 0.03;
+				pos.y += noiseVal * 0.03;
+				pos.z += noiseVal * 0.05;
+
+				// 2. Gentle vertical float
+				pos.y += sin(uTime * 0.4 + aRandom * 6.28) * 0.01;
+
+				// 3. Mouse repulsion
+				float dist = distance(pos, uMouse);
+				if (dist < uMouseRadius) {
+					float force = 1.0 - dist / uMouseRadius;
+					force = pow(force, 2.0) * uMouseStrength;
+					vec3 dir = normalize(pos - uMouse);
+					pos += dir * force;
+				}
+
+				vAlpha = 0.2 + noiseVal * 0.15;
+
+				vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+				gl_Position = projectionMatrix * mvPosition;
+
+				// Size attenuation
+				gl_PointSize = (0.6 + aRandom * 0.9) * (150.0 / -mvPosition.z);
+			}
+		`;
+
+		// ── Fragment Shader ───────────────────────────────────────────────────────
+		const fragmentShader = /* glsl */ `
+			uniform vec3 uColor;
+			varying float vAlpha;
+
+			void main() {
+				float dist = distance(gl_PointCoord, vec2(0.5));
+				if (dist > 0.5) discard;
+
+				float alpha = 1.0 - smoothstep(0.1, 0.5, dist);
+				alpha *= vAlpha;
+
+				gl_FragColor = vec4(uColor, alpha);
+			}
+		`;
+
+		// ── Load and Sample Logo Image ────────────────────────────────────────────
+		async function loadLogoAndCreateParticles(): Promise<{
+			positions: Float32Array;
+			randoms: Float32Array;
+			originalPositions: Float32Array;
+			count: number;
+		} | null> {
+			return new Promise((resolve) => {
+				const img = new Image();
+				img.crossOrigin = "anonymous";
+				img.src = "/Logo2.png";
+
+				img.onload = () => {
+					// Create offscreen canvas for sampling
+					const sampleCanvas = document.createElement("canvas");
+					const sampleCtx = sampleCanvas.getContext("2d");
+					if (!sampleCtx) {
+						resolve(null);
+						return;
+					}
+
+					// Resize to sampleSize while maintaining aspect ratio
+					const aspect = img.width / img.height;
+					let sampleWidth = CONFIG.sampleSize;
+					let sampleHeight = Math.round(CONFIG.sampleSize / aspect);
+
+					if (sampleHeight > CONFIG.sampleSize) {
+						sampleHeight = CONFIG.sampleSize;
+						sampleWidth = Math.round(CONFIG.sampleSize * aspect);
+					}
+
+					sampleCanvas.width = sampleWidth;
+					sampleCanvas.height = sampleHeight;
+
+					// Draw and sample
+					sampleCtx.drawImage(img, 0, 0, sampleWidth, sampleHeight);
+					const imageData = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+					const pixels = imageData.data;
+
+					// Sample pixels with alpha > threshold
+					const positions: number[] = [];
+					const randoms: number[] = [];
+					const originalPositions: number[] = [];
+
+					for (let y = 0; y < sampleHeight; y += CONFIG.step) {
+						for (let x = 0; x < sampleWidth; x += CONFIG.step) {
+							const idx = (y * sampleWidth + x) * 4;
+							const alpha = pixels[idx + 3];
+
+							if (alpha > CONFIG.alphaThreshold) {
+								// Center the coordinates
+								const px = (x / sampleWidth - 0.5) * CONFIG.scale;
+								const py = -(y / sampleHeight - 0.5) * CONFIG.scale; // Flip Y
+								const pz = (Math.random() - 0.5) * CONFIG.depth;
+
+								positions.push(px, py, pz);
+								originalPositions.push(px, py, pz);
+								randoms.push(Math.random());
+							}
+						}
+					}
+
+					console.log(`[ParticleLogo] Created ${positions.length / 3} particles`);
+
+					resolve({
+						positions: new Float32Array(positions),
+						randoms: new Float32Array(randoms),
+						originalPositions: new Float32Array(originalPositions),
+						count: positions.length / 3,
+					});
+				};
+
+				img.onerror = () => {
+					console.error("[ParticleLogo] Failed to load Logo2.png");
+					resolve(null);
+				};
+			});
+		}
+
+		// ── Initialize Particles ──────────────────────────────────────────────────
+		const particleData = await loadLogoAndCreateParticles();
+
+		if (!particleData || particleData.count === 0) {
+			console.warn("[ParticleLogo] No particles created, hiding canvas");
+			canvasEl.style.display = "none";
+			renderer.dispose();
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			cleanups.forEach((fn) => fn());
+			throw new Error("Failed to create particles from logo");
+		}
+
+		// ── Create Geometry ───────────────────────────────────────────────────────
+		const geometry = new THREE.BufferGeometry();
+		geometry.setAttribute("position", new THREE.BufferAttribute(particleData.positions, 3));
+		geometry.setAttribute("aRandom", new THREE.BufferAttribute(particleData.randoms, 1));
+		geometry.setAttribute("aOriginalPosition", new THREE.BufferAttribute(particleData.originalPositions, 3));
+
+		// ── Create Material ───────────────────────────────────────────────────────
+		const uniforms = {
+			uTime: { value: 0.0 },
+			uColor: { value: CONFIG.uColor },
+			uMouse: { value: new THREE.Vector3(0, 0, 100) },
+			uMouseRadius: { value: CONFIG.uMouseRadius },
+			uMouseStrength: { value: CONFIG.uMouseStrength },
+		};
+
+		const material = new THREE.ShaderMaterial({
+			vertexShader,
+			fragmentShader,
+			uniforms,
+			blending: THREE.AdditiveBlending,
+			depthWrite: false,
+			transparent: true,
+		});
+
+		// ── Create Points Mesh ────────────────────────────────────────────────────
+		const points = new THREE.Points(geometry, material);
+		scene.add(points);
+
+		// ── Resize Handler ────────────────────────────────────────────────────────
+		const parent = canvasEl.parentElement;
+		const onResize = () => {
+			if (!parent) return;
+			const rect = parent.getBoundingClientRect();
+			const width = rect.width;
+			const height = rect.height;
+
+			renderer.setSize(width, height, false);
+			camera.aspect = width / height;
+			camera.updateProjectionMatrix();
+		};
+
+		onResize();
+
+		const resizeObserver = new ResizeObserver(onResize);
+		if (parent) resizeObserver.observe(parent);
+		cleanups.push(() => resizeObserver.disconnect());
+
+		window.addEventListener("resize", onResize);
+		cleanups.push(() => window.removeEventListener("resize", onResize));
+
+		// ── Mouse Interaction (window-level for full-background detection) ─────────
+		const mouse = new THREE.Vector2();
+		const raycaster = new THREE.Raycaster();
+		const mousePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+		const intersectPoint = new THREE.Vector3();
+		const currentMouse = new THREE.Vector3(0, 0, 100);
+
+		if (!reduceMotion) {
+			// Listen on window so mouse interaction works even when hovering over
+			// elements above the canvas (title, buttons, etc.)
+			const onMouseMove = (e: MouseEvent) => {
+				mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+				mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+			};
+
+			window.addEventListener("mousemove", onMouseMove, { passive: true });
+			cleanups.push(() => window.removeEventListener("mousemove", onMouseMove));
+		}
+
+		// ── Animation Loop ────────────────────────────────────────────────────────
+		let frameId = 0;
+		const clock = new THREE.Clock();
+
+		const renderFrame = () => {
+			const elapsed = clock.getElapsedTime();
+			uniforms.uTime.value = elapsed;
+
+			// Update mouse position via raycaster
+			if (!reduceMotion) {
+				raycaster.setFromCamera(mouse, camera);
+				raycaster.ray.intersectPlane(mousePlane, intersectPoint);
+				currentMouse.lerp(intersectPoint, 0.08);
+				uniforms.uMouse.value.copy(currentMouse);
+			}
+
+			renderer.render(scene, camera);
+			frameId = window.requestAnimationFrame(renderFrame);
+		};
+
+		if (reduceMotion) {
+			// Static render only
+			uniforms.uTime.value = 0;
+			renderer.render(scene, camera);
+		} else {
+			renderFrame();
+		}
+
+		// ── Cleanup ───────────────────────────────────────────────────────────────
+		const cleanup = () => {
+			window.cancelAnimationFrame(frameId);
+			cleanups.forEach((fn) => fn());
+			geometry.dispose();
+			material.dispose();
+			renderer.dispose();
+		};
+
+		window.addEventListener("pagehide", cleanup, { once: true });
+	}
+</script>
+
+<style>
+	.particle-logo-canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+		/* Above TechScene (z:-3) but below hero-content (z:2) */
+		pointer-events: auto;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.particle-logo-canvas {
+			/* Static display is handled in JS */
+		}
+	}
+</style>
